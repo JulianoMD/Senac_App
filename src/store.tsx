@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createOrder, foods, tasks, type Food, type Order, type TaskId } from "./data";
-import { flyToOrders, visibleCardPhoto, withTransition } from "./motion";
+import { flyToOrders, morphCard, withTransition } from "./motion";
 
 export type Tab = "discover" | "orders" | "favorites" | "profile";
 
@@ -146,12 +146,13 @@ function useAppState() {
     else window.requestAnimationFrame(flyToOrders);
   }
 
-  // A foto do card "viaja" até o topo da oferta.
+  // O card cresce até virar a página da oferta, e a foto vai junto até o topo.
   function openFood(food: Food) {
-    const photo = visibleCardPhoto(food.id);
-    if (photo) photo.style.viewTransitionName = "food-hero";
-    withTransition("sheet", () => {
-      if (photo) photo.style.viewTransitionName = "";
+    // data-morph diz ao CSS qual card vira a página (com a foto viajando à parte).
+    const card = morphCard(food.id);
+    if (card) card.dataset.morph = "photo";
+    withTransition(card ? "sheet" : "page", () => {
+      if (card) delete card.dataset.morph;
       setSelected(food);
     });
   }
@@ -164,13 +165,15 @@ function useAppState() {
       afterOfferClosed(null);
       return;
     }
-    const photo = document.querySelector(".item-hero .photo") ? visibleCardPhoto(food.id) : null;
-    const transition = withTransition("sheet", () => {
+    // A foto só viaja de volta se estiver aparecendo na oferta (na etapa de pagamento ela some).
+    const card = morphCard(food.id);
+    const morph = document.querySelector(".item-hero .photo") ? "photo" : "card";
+    const transition = withTransition(card ? "sheet-back" : "page", () => {
       setSelected(null);
-      if (photo) photo.style.viewTransitionName = "food-hero";
+      if (card) card.dataset.morph = morph;
     });
     const clear = () => {
-      if (photo) photo.style.viewTransitionName = "";
+      if (card) delete card.dataset.morph;
     };
     if (transition) transition.finished.finally(clear);
     else clear();

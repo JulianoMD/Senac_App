@@ -171,78 +171,80 @@ export default function Discover() {
         ))}
       </div>
 
-      {loading ? (
-        <div role="status" aria-label="Carregando ofertas">
-          <section className="content-section">
-            <h2 className="section-title">
-              <span className="live-dot" aria-hidden="true" />
-              Acabando agora
-            </h2>
-            <div className="carousel">
-              <FoodCardSkeleton />
-              <FoodCardSkeleton />
-            </div>
-          </section>
-          <section className="content-section">
-            <h2 className="section-title">Disponíveis hoje</h2>
-            <div className="feed">
-              <FoodCardSkeleton />
-              <FoodCardSkeleton />
-            </div>
-          </section>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <span className="empty-icon tone-blue">
-            <Icon name="search" size={26} />
-          </span>
-          <p>{search ? `Nada encontrado para “${search}”` : "Nada nesta categoria agora"}</p>
-          <span>Confira a grafia ou tente uma destas buscas. Novas ofertas entram ao longo do dia.</span>
-          <div className="suggestions suggestions--center">
-            {searchSuggestions.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => {
-                  setCategory("Todos");
-                  setSearch(item);
-                }}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-          <button className="primary-button" type="button" onClick={clearFilters}>
-            Limpar busca
-          </button>
-        </div>
-      ) : (
-        <>
-          {endingSoon.length > 0 && (
+      <div className="results" key={loading ? "loading" : category}>
+        {loading ? (
+          <div role="status" aria-label="Carregando ofertas">
             <section className="content-section">
               <h2 className="section-title">
                 <span className="live-dot" aria-hidden="true" />
                 Acabando agora
               </h2>
               <div className="carousel">
-                {endingSoon.map((food) => (
-                  <FoodCard food={food} key={food.id} />
-                ))}
+                <FoodCardSkeleton />
+                <FoodCardSkeleton />
               </div>
             </section>
-          )}
-          {others.length > 0 && (
             <section className="content-section">
               <h2 className="section-title">Disponíveis hoje</h2>
               <div className="feed">
-                {others.map((food) => (
-                  <FoodCard food={food} key={food.id} />
-                ))}
+                <FoodCardSkeleton />
+                <FoodCardSkeleton />
               </div>
             </section>
-          )}
-        </>
-      )}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-state">
+            <span className="empty-icon tone-blue">
+              <Icon name="search" size={26} />
+            </span>
+            <p>{search ? `Nada encontrado para “${search}”` : "Nada nesta categoria agora"}</p>
+            <span>Confira a grafia ou tente uma destas buscas. Novas ofertas entram ao longo do dia.</span>
+            <div className="suggestions suggestions--center">
+              {searchSuggestions.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => {
+                    setCategory("Todos");
+                    setSearch(item);
+                  }}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+            <button className="primary-button" type="button" onClick={clearFilters}>
+              Limpar busca
+            </button>
+          </div>
+        ) : (
+          <>
+            {endingSoon.length > 0 && (
+              <section className="content-section">
+                <h2 className="section-title">
+                  <span className="live-dot" aria-hidden="true" />
+                  Acabando agora
+                </h2>
+                <div className="carousel">
+                  {endingSoon.map((food) => (
+                    <FoodCard food={food} key={food.id} />
+                  ))}
+                </div>
+              </section>
+            )}
+            {others.length > 0 && (
+              <section className="content-section">
+                <h2 className="section-title">Disponíveis hoje</h2>
+                <div className="feed">
+                  {others.map((food) => (
+                    <FoodCard food={food} key={food.id} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
+      </div>
     </main>
   );
 }

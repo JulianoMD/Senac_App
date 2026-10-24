@@ -9,8 +9,8 @@ type Drag = {
   panel: HTMLElement;
 };
 
-// Painel que sobe da parte de baixo. Fecha pelo X, Esc, toque fora ou arrastando
-// para baixo a partir das áreas marcadas com data-sheet-handle (controle e liberdade).
+// Painel que sobe da parte de baixo ("sheet") ou página inteira ("page"). Fecha pelo X, Esc,
+// toque fora ou arrastando para baixo a partir das áreas com data-sheet-handle (controle e liberdade).
 // Com `vt`, a entrada e a saída ficam por conta da View Transition.
 export default function Sheet({
   open,
@@ -23,7 +23,7 @@ export default function Sheet({
   open: boolean;
   onClose: (reason?: "drag") => void;
   label: string;
-  variant?: "sheet" | "fullscreen";
+  variant?: "sheet" | "page" | "fullscreen";
   vt?: boolean;
   children: (close: () => void) => React.ReactNode;
 }) {
@@ -58,7 +58,7 @@ export default function Sheet({
   }
 
   function onPointerDown(event: React.PointerEvent<HTMLDialogElement>) {
-    if (variant !== "sheet" || (event.pointerType === "mouse" && event.button !== 0)) return;
+    if (variant === "fullscreen" || (event.pointerType === "mouse" && event.button !== 0)) return;
     if (!(event.target as HTMLElement).closest("[data-sheet-handle]")) return;
     const panel = dialogRef.current?.firstElementChild;
     if (!(panel instanceof HTMLElement)) return;

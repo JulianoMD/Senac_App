@@ -1695,6 +1695,56 @@ svg {
   animation: fade-out 220ms ease both;
 }
 
+/* Página inteira (a oferta): mesma largura do app e altura da tela; nasce do card tocado */
+.page {
+  width: 100%;
+  max-width: 560px;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0 auto;
+  padding: 0;
+  overflow: visible;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+}
+
+.page::backdrop {
+  background: rgb(9 20 38 / 35%);
+  opacity: calc(1 - var(--drag, 0) * 0.85);
+  animation: fade-in 240ms ease both;
+}
+
+.page[open] > * {
+  animation: page-rise 380ms var(--ease-out) both;
+}
+
+.page.is-closing > * {
+  animation: page-drop 220ms ease-in both;
+}
+
+.page.is-vt[open] > * {
+  animation: none;
+  view-transition-name: offer-card;
+}
+
+.page :is(.item-sheet, .ticket-sheet) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100dvh;
+  border-radius: 0;
+}
+
+.page .item-hero {
+  flex: none;
+  clip-path: none;
+}
+
+.page .sheet-footer {
+  margin-top: auto;
+}
+
 .item-sheet {
   max-height: 92dvh;
   overflow-y: auto;
@@ -3151,12 +3201,6 @@ svg {
 
 /* View Transitions — tudo se encaixa: abas, oferta, etapas da compra e listas */
 
-.sheet.is-vt[open] > * {
-  animation: none;
-  view-transition-name: sheet;
-}
-
-html[data-vt="category"] .food-card,
 html[data-vt="list"] .food-card,
 html[data-vt="list"] .checklist,
 html[data-vt="list"] .checklist li,
@@ -3167,6 +3211,29 @@ html[data-vt="list"] .checklist-toggle {
 
 html[data-vt="category"] .category-ring {
   view-transition-name: category-ring;
+}
+
+/* Troca de categoria e chegada das ofertas: só a área das ofertas troca (topo, busca e
+   categorias ficam parados). A lista antiga some rápido e a nova sobe suave — sem sobreposição. */
+html:is([data-vt="category"], [data-vt="skeleton"]) .results {
+  view-transition-name: results;
+}
+
+html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-group(results) {
+  animation-duration: 0s;
+}
+
+html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-old(results) {
+  animation: fade-out 130ms ease-in both;
+}
+
+html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-new(results) {
+  animation: results-in 420ms var(--ease-out) 100ms both;
+}
+
+html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-old(root),
+html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-new(root) {
+  animation-duration: 0s;
 }
 
 html[data-vt^="tab"] .app-header {
@@ -3223,27 +3290,124 @@ html[data-vt="tab-back"]::view-transition-new(root) {
   object-fit: cover;
 }
 
-html[data-vt="sheet"]::view-transition-new(sheet) {
-  animation: sheet-up 460ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+/* Card → página da oferta: o card cresce até ocupar a tela (e encolhe de volta ao fechar).
+   Fundo sólido durante a troca (nada do feed aparece através) e cantos que acompanham:
+   arredondados como o card, retos como a página. A foto viaja junto, por cima. */
+[data-morph] {
+  view-transition-name: offer-card;
 }
 
-html[data-vt="sheet"]::view-transition-old(sheet),
-html[data-vt^="tab"]::view-transition-old(sheet) {
-  animation: sheet-down 240ms ease-in both;
+[data-morph="photo"] .photo {
+  view-transition-name: food-hero;
 }
 
-/* Etapas da compra: o painel muda de altura suavemente enquanto o conteúdo troca. */
-html[data-vt="step"]::view-transition-group(sheet) {
-  animation-duration: 440ms;
+/* Os selos ficam sobre a foto do card: somem logo ao abrir e voltam quando o card assenta. */
+[data-morph] .stock-badge {
+  view-transition-name: card-badge;
+}
+
+[data-morph] .save-button {
+  view-transition-name: card-save;
+}
+
+[data-morph] .food-store {
+  view-transition-name: card-store;
+}
+
+html[data-vt="sheet"]::view-transition-old(card-badge),
+html[data-vt="sheet"]::view-transition-old(card-save),
+html[data-vt="sheet"]::view-transition-old(card-store) {
+  animation: fade-out 100ms ease both;
+}
+
+html[data-vt="sheet-back"]::view-transition-new(card-badge),
+html[data-vt="sheet-back"]::view-transition-new(card-save),
+html[data-vt="sheet-back"]::view-transition-new(card-store) {
+  animation: fade-in 200ms ease 360ms both;
+}
+
+html:is([data-vt="sheet"], [data-vt="sheet-back"])::view-transition-group(offer-card),
+html:is([data-vt="sheet"], [data-vt="sheet-back"])::view-transition-group(food-hero) {
+  animation-duration: 520ms;
   animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1);
 }
 
-html[data-vt="step"]::view-transition-old(sheet) {
-  animation: fade-out 160ms ease both;
+html:is([data-vt="sheet"], [data-vt="sheet-back"])::view-transition-image-pair(offer-card) {
+  background: var(--surface);
+  animation: card-to-page 520ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
 }
 
-html[data-vt="step"]::view-transition-new(sheet) {
-  animation: fade-in 320ms ease 90ms both;
+html:is([data-vt="sheet"], [data-vt="sheet-back"])::view-transition-image-pair(food-hero) {
+  animation: photo-to-page 520ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+html[data-vt="sheet-back"]::view-transition-image-pair(offer-card) {
+  animation-name: page-to-card;
+}
+
+html[data-vt="sheet-back"]::view-transition-image-pair(food-hero) {
+  animation-name: page-to-photo;
+}
+
+/* Sobre o fundo sólido, a soma de luz padrão da View Transition clarearia tudo até o branco. */
+html:is([data-vt="sheet"], [data-vt="sheet-back"])::view-transition-old(offer-card),
+html:is([data-vt="sheet"], [data-vt="sheet-back"])::view-transition-new(offer-card) {
+  mix-blend-mode: normal;
+}
+
+html:is([data-vt="sheet"], [data-vt="sheet-back"])::view-transition-old(offer-card) {
+  animation: fade-out 140ms ease both;
+}
+
+html:is([data-vt="sheet"], [data-vt="sheet-back"])::view-transition-new(offer-card) {
+  animation: fade-in 240ms ease 90ms both;
+}
+
+/* O X e o puxador ficam por cima da foto: aparecem quando ela chega e saem antes de ela voltar. */
+html:is([data-vt="sheet"], [data-vt="sheet-back"]) .page .item-close {
+  view-transition-name: offer-close;
+}
+
+html:is([data-vt="sheet"], [data-vt="sheet-back"]) .page .item-hero .sheet-grabber {
+  view-transition-name: offer-grabber;
+}
+
+html[data-vt="sheet"]::view-transition-new(offer-close),
+html[data-vt="sheet"]::view-transition-new(offer-grabber) {
+  animation: fade-in 220ms ease 340ms both;
+}
+
+html[data-vt="sheet-back"]::view-transition-old(offer-close),
+html[data-vt="sheet-back"]::view-transition-old(offer-grabber) {
+  animation: fade-out 100ms ease both;
+}
+
+/* Sem card na tela (ex.: aberta pelos primeiros passos): a página sobe ou desce inteira,
+   com a foto junto. */
+html:is([data-vt="page"], [data-vt^="tab"]) .item-hero .photo {
+  view-transition-name: none !important;
+}
+
+html[data-vt="page"]::view-transition-new(offer-card) {
+  animation: page-rise 420ms var(--ease-out) both;
+}
+
+html[data-vt="page"]::view-transition-old(offer-card),
+html[data-vt^="tab"]::view-transition-old(offer-card) {
+  animation: page-drop 240ms ease-in both;
+}
+
+/* Etapas da compra: o conteúdo troca no lugar, sem sobreposição. */
+html[data-vt="step"]::view-transition-group(offer-card) {
+  animation-duration: 0s;
+}
+
+html[data-vt="step"]::view-transition-old(offer-card) {
+  animation: fade-out 140ms ease both;
+}
+
+html[data-vt="step"]::view-transition-new(offer-card) {
+  animation: fade-in 280ms ease 60ms both;
 }
 
 /* Ao passar o mouse, os objetos principais sobem um pouco e ganham sombra — sem bordas.
@@ -3753,6 +3917,63 @@ html.booted .reveal-words > span > span {
   }
 }
 
+@keyframes card-to-page {
+  from {
+    clip-path: inset(0 round 22px);
+  }
+  to {
+    clip-path: inset(0 round 0);
+  }
+}
+
+@keyframes page-to-card {
+  from {
+    clip-path: inset(0 round 0);
+  }
+  to {
+    clip-path: inset(0 round 22px);
+  }
+}
+
+@keyframes photo-to-page {
+  from {
+    clip-path: inset(0 round 22px 22px 0 0);
+  }
+  to {
+    clip-path: inset(0 round 0);
+  }
+}
+
+@keyframes page-to-photo {
+  from {
+    clip-path: inset(0 round 0);
+  }
+  to {
+    clip-path: inset(0 round 22px 22px 0 0);
+  }
+}
+
+@keyframes page-rise {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+
+@keyframes page-drop {
+  to {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+
+@keyframes results-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
 @keyframes page-out {
   to {
     opacity: 0;
@@ -3942,11 +4163,11 @@ html[data-motion="reduced"] :is(.discover-page, .inside-page) > *,
 html[data-motion="reduced"] :is(.feed > .food-card, .strip-list > *, .history > *),
 html[data-motion="reduced"] :is(.onboarding-art, .toast, .medal, .profile-avatar, .celebrate-title),
 html[data-motion="reduced"] :is(.stamp, .ticket--print, .paid-check, .nav-count, .ring-value),
-html[data-motion="reduced"] .sheet[open] > * {
+html[data-motion="reduced"] :is(.sheet, .page)[open] > * {
   animation-name: fade-in !important;
 }
 
-html[data-motion="reduced"] :is(.toast.is-leaving, .sheet.is-closing > *, .ticket.is-torn .ticket-stub) {
+html[data-motion="reduced"] :is(.toast.is-leaving, .sheet.is-closing > *, .page.is-closing > *, .ticket.is-torn .ticket-stub) {
   animation-name: fade-out !important;
 }
 
@@ -3974,11 +4195,24 @@ html[data-motion="reduced"]::view-transition-group(*) {
   animation-duration: 0s !important;
 }
 
+/* Sem movimento, o que existe antes e depois troca num esmaecer cruzado sincronizado:
+   o que não mudou fica firme (nada pisca) e o que mudou se dissolve no lugar. */
 html[data-motion="reduced"]::view-transition-old(*) {
-  animation: fade-out 150ms ease both !important;
+  animation: fade-out 220ms ease both !important;
 }
 
 html[data-motion="reduced"]::view-transition-new(*) {
+  animation: fade-in 220ms ease both !important;
+}
+
+/* Conteúdo que muda por inteiro (outra aba, outra categoria) sai primeiro e o novo entra logo depois. */
+html[data-motion="reduced"][data-vt^="tab"]::view-transition-old(root),
+html[data-motion="reduced"]::view-transition-old(results) {
+  animation: fade-out 150ms ease both !important;
+}
+
+html[data-motion="reduced"][data-vt^="tab"]::view-transition-new(root),
+html[data-motion="reduced"]::view-transition-new(results) {
   animation: fade-in 260ms ease 100ms both !important;
 }
 

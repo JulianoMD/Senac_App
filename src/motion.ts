@@ -80,3 +80,10 @@ export function visibleCardPhoto(foodId: number) {
     rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth;
   return onScreen ? photo : null;
 }
+
+// Card que vira a página da oferta (e para onde ela volta). Sem card na tela, ou com movimento
+// reduzido, não há de onde crescer: a página só sobe (ou aparece) sozinha.
+export function morphCard(foodId: number) {
+  if (isReducedMotion()) return null;
+  return visibleCardPhoto(foodId)?.closest<HTMLElement>(".food-card") ?? null;
+}

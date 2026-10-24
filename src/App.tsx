@@ -70,6 +70,7 @@ function Shell() {
         open={app.selected !== null}
         onClose={(reason) => app.closeFood(reason !== "drag")}
         label="Detalhes da oferta"
+        variant="page"
         vt={canTransition()}
       >
         {(close) => app.selected && <Checkout food={app.selected} close={close} />}
