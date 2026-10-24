@@ -24,6 +24,19 @@ type Saved = {
 
 const reduceQuery = "(prefers-reduced-motion: reduce)";
 
+// Atalhos do app instalado abrem direto numa aba: ?aba=pedidos, ?aba=favoritos ou ?aba=perfil.
+function tabFromUrl(): Tab {
+  try {
+    const aba = new URLSearchParams(window.location.search).get("aba");
+    if (aba === "pedidos") return "orders";
+    if (aba === "favoritos") return "favorites";
+    if (aba === "perfil") return "profile";
+  } catch {
+    // Sem URL disponível: começa em Descobrir.
+  }
+  return "discover";
+}
+
 function systemPrefersReduced() {
   return typeof matchMedia === "function" && matchMedia(reduceQuery).matches;
 }
@@ -52,7 +65,7 @@ function load(): Saved {
 
 function useAppState() {
   const [saved, setSaved] = useState<Saved>(load);
-  const [tab, setTabState] = useState<Tab>("discover");
+  const [tab, setTabState] = useState<Tab>(tabFromUrl);
   const [selected, setSelected] = useState<Food | null>(null);
   const [openOrderId, setOpenOrderId] = useState<string | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(() => !load().onboarded);

@@ -8,6 +8,7 @@ import Icon from "../components/Icon";
 import Sheet from "../components/Sheet";
 import { coupons, foodById, tasks, user, welcomeCoupon, type Coupon } from "../data";
 import avatar from "../assets/avatar-marina.png";
+import { isIOS, useInstall } from "../install";
 import { useApp } from "../store";
 
 const LEVEL_START = 10;
@@ -45,6 +46,8 @@ function CopyCodeButton({ code }: { code: string }) {
 export default function Profile() {
   const app = useApp();
   const [openCoupon, setOpenCoupon] = useState<Coupon | null>(null);
+  const install = useInstall();
+  const [installHelp, setInstallHelp] = useState(false);
 
   const meals = 11 + app.orders.length;
   const saved =
@@ -275,6 +278,37 @@ export default function Profile() {
               }}
             />
           </label>
+          {!install.installed && (
+            <button
+              className="menu-row"
+              type="button"
+              aria-expanded={install.canPrompt ? undefined : installHelp}
+              onClick={async () => {
+                if (!install.canPrompt) {
+                  setInstallHelp((open) => !open);
+                  return;
+                }
+                const outcome = await install.install();
+                if (outcome === "accepted") app.toast("Fila Zero instalado na tela inicial");
+              }}
+            >
+              <span className="menu-icon">
+                <Icon name="download" size={18} />
+              </span>
+              <span>
+                Instalar o app no celular
+                <small>Abre da tela inicial, até sem internet</small>
+              </span>
+              <Icon name="arrow" size={18} />
+            </button>
+          )}
+          {installHelp && !install.installed && (
+            <p className="install-help">
+              {isIOS
+                ? "No Safari, toque em Compartilhar e depois em “Adicionar à Tela de Início”."
+                : "No menu do navegador, escolha “Instalar app” ou “Adicionar à tela inicial”."}
+            </p>
+          )}
           <button className="menu-row" type="button" onClick={app.showOnboarding}>
             <span className="menu-icon">
               <Icon name="compass" size={18} />

@@ -2,6 +2,17 @@
 
 App para cortar as filas nas cantinas do campus. A pessoa escolhe uma refeição, paga pelo app e recebe um código de retirada com o próprio nome — no balcão, é só mostrar o código. As ofertas são refeições e lanches feitos no dia, perto de vencer, com preço reduzido: a cantina não perde mercadoria e quem compra paga menos.
 
+**Abrir o app:** https://julianomd.github.io/Senac_App/
+
+## Instalar no celular
+
+O Fila Zero é um PWA: dá para instalar como um app, com ícone na tela inicial, e ele abre mesmo sem internet.
+
+- **Android (Chrome):** abra o link, toque em **Perfil → Instalar o app no celular** ou no menu ⋮ → *Instalar app*.
+- **iPhone (Safari):** abra o link, toque em **Compartilhar** e depois em **Adicionar à Tela de Início**.
+
+A cada envio para o branch `main`, o GitHub Actions publica a versão nova automaticamente.
+
 ## Funcionalidades
 
 - **Descobrir:** ofertas do dia com busca, categorias e o que está acabando.
