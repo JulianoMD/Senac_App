@@ -372,6 +372,10 @@ export const courses = [
 // Fundo solidário: refeições pagas por estudantes para colegas que precisam (antes desta pessoa).
 export const SOLIDARITY_BASE = 86;
 
+// Projeto de demonstração: os códigos que a assistência estudantil entregaria ficam aqui no código.
+// Cada refeição solidária paga no app cria mais um código no fundo.
+export const DEMO_SOLIDARITY_CODES = ["SOL-2026", "SOL-4821", "SOL-1530", "SOL-7314"];
+
 export const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export function discountOf(food: Food) {

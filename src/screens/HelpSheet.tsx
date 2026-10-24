@@ -20,7 +20,7 @@ const faq = [
   {
     question: "O que é a refeição solidária?",
     answer:
-      "Ao pagar, você pode pagar uma refeição a mais para um colega que precisa. A assistência estudantil entrega códigos (SOL-1234) de forma discreta; quem recebe usa o código no pagamento e retira normalmente, sem ninguém saber.",
+      "Ao pagar, você pode pagar uma refeição a mais para um colega que precisa. A assistência estudantil entrega códigos (SOL-1234) de forma discreta; quem recebe usa o código no pagamento e retira normalmente, sem ninguém saber. Na demonstração, teste com o código SOL-2026.",
   },
   {
     question: "Posso cancelar uma reserva?",

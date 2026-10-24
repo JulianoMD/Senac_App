@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { addFoods, createOrder, foods, tasks, type Food, type Order, type TaskId } from "./data";
+import { addFoods, createOrder, DEMO_SOLIDARITY_CODES, foods, tasks, type Food, type Order, type TaskId } from "./data";
 import { flyToOrders, markMorphFrom, morphCard, withTransition } from "./motion";
 
 export type Tab = "discover" | "orders" | "favorites" | "profile";
@@ -28,6 +28,8 @@ type Saved = {
   donated: number;
   /** Sobras doadas ao banco de alimentos pelo Modo cantina. */
   leftoversDonated: number;
+  /** Códigos solidários criados pelas refeições doadas neste aparelho. */
+  solidarityCodes: string[];
   /** Códigos solidários já usados (cada um vale uma vez). */
   redeemed: string[];
   /** Avisos já enviados (para não repetir). */
@@ -78,6 +80,7 @@ const initialState: Saved = {
   customFoods: [],
   donated: 0,
   leftoversDonated: 0,
+  solidarityCodes: [],
   redeemed: [],
   alerted: [],
   counterCollected: [],
@@ -117,6 +120,27 @@ function useAppState() {
       // Sem armazenamento (aba anônima): o app funciona, só não lembra entre visitas.
     }
   }, [saved]);
+
+  // Demonstração em duas janelas (aluno e Modo cantina): o que muda numa aparece na outra na hora.
+  // Se a outra janela reiniciou a demonstração, esta recarrega do zero também.
+  useEffect(() => {
+    function onStorage(event: StorageEvent) {
+      if (event.key !== STORAGE_KEY) return;
+      if (event.newValue === null) {
+        window.location.reload();
+        return;
+      }
+      try {
+        const next: Saved = { ...initialState, ...JSON.parse(event.newValue) };
+        addFoods(next.customFoods);
+        setSaved(next);
+      } catch {
+        // Valor ilegível: mantém o estado desta janela.
+      }
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   // Segue o "reduzir movimento" do sistema, a menos que a pessoa escolha outra coisa no Perfil.
   const reducedMotion = saved.motion === "reduced" || (saved.motion === "system" && systemReduced);
@@ -245,19 +269,25 @@ function useAppState() {
   function pay(food: Food, paidWith: string, extra: Pick<Order, "slot" | "donated" | "solidarity"> = {}) {
     const order = createOrder(food, paidWith, extra);
     pendingFly.current = true;
+    // Refeição doada vira um código novo no fundo solidário (para a assistência entregar).
+    const gift = extra.donated ? `SOL-${Math.floor(1000 + Math.random() * 9000)}` : null;
     update((current) => ({
       orders: [order, ...current.orders],
       stock: { ...current.stock, [food.id]: Math.max(0, (current.stock[food.id] ?? 0) - 1) },
-      donated: current.donated + (extra.donated ? 1 : 0),
+      donated: current.donated + (gift ? 1 : 0),
+      solidarityCodes: gift ? [...current.solidarityCodes, gift] : current.solidarityCodes,
     }));
     complete("reserve");
     return order;
   }
 
   // Código solidário (entregue pela assistência estudantil): vale uma refeição, uma vez só.
-  function checkSolidarityCode(raw: string): "ok" | "invalid" | "used" {
+  const solidarityPool = [...DEMO_SOLIDARITY_CODES, ...saved.solidarityCodes];
+
+  function checkSolidarityCode(raw: string): "ok" | "invalid" | "unknown" | "used" {
     const code = raw.trim().toUpperCase();
     if (!/^SOL-\d{4}$/.test(code)) return "invalid";
+    if (!solidarityPool.includes(code)) return "unknown";
     return saved.redeemed.includes(code) ? "used" : "ok";
   }
 
@@ -319,6 +349,16 @@ function useAppState() {
     complete("code");
   }
 
+  // Volta tudo ao começo (pedidos, favoritos, ofertas publicadas) para apresentar de novo.
+  function resetDemo() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Sem armazenamento: recarregar já começa do zero.
+    }
+    window.location.replace(import.meta.env.BASE_URL);
+  }
+
   function finishOnboarding() {
     setOnboardingOpen(false);
     update(() => ({ onboarded: true }));
@@ -343,8 +383,10 @@ function useAppState() {
     setHelpOpen,
     vendorOpen,
     setVendorOpen,
+    resetDemo,
     checkSolidarityCode,
     redeemSolidarityCode,
+    availableSolidarityCodes: solidarityPool.filter((code) => !saved.redeemed.includes(code)),
     publishFood,
     setStock,
     donateLeftovers,

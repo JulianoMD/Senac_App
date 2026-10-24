@@ -275,6 +275,23 @@ export default function VendorPanel({ close }: { close: () => void }) {
                 {app.leftoversDonated} {app.leftoversDonated === 1 ? "refeição doada" : "refeições doadas"} pelo app até agora.
               </p>
             </section>
+
+            <section className="vendor-card">
+              <h2>Fundo solidário</h2>
+              <p>
+                Códigos que a assistência estudantil entrega para quem precisa. Cada refeição solidária paga no app gera
+                um novo; quem recebe usa o código no pagamento.
+              </p>
+              {app.availableSolidarityCodes.length ? (
+                <ul className="code-list" aria-label="Códigos disponíveis">
+                  {app.availableSolidarityCodes.map((code) => (
+                    <li key={code}>{code}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="vendor-note">Todos os códigos já foram usados.</p>
+              )}
+            </section>
           </>
         )}
       </div>

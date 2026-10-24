@@ -62,6 +62,7 @@ export default function Profile() {
   const [openCoupon, setOpenCoupon] = useState<Coupon | null>(null);
   const install = useInstall();
   const [installHelp, setInstallHelp] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   const [permission, setPermission] = useState(() => (canNotify() ? Notification.permission : "denied"));
 
   const meals = 11 + app.orders.length;
@@ -261,7 +262,7 @@ export default function Profile() {
                 {!app.notify
                   ? "Desativados"
                   : permission === "granted"
-                    ? "Chegam no celular, mesmo com o app fechado na tela"
+                    ? "Na tela e como notificação, com o app em segundo plano"
                     : permission === "denied"
                       ? "Só dentro do app (o navegador bloqueou as notificações)"
                       : "Só dentro do app por enquanto"}
@@ -389,6 +390,49 @@ export default function Profile() {
             <Icon name="arrow" size={18} />
           </button>
         </div>
+      </section>
+
+      {/* Projeto de demonstração: sem servidor, tudo fica neste aparelho. */}
+      <section className="profile-section">
+        <h2 className="section-title">Demonstração</h2>
+        <div className="settings-card">
+          {confirmReset ? (
+            <div className="menu-row menu-row--stack confirm-reset" role="alertdialog" aria-label="Confirmar reinício">
+              <span className="menu-icon">
+                <Icon name="reset" size={18} />
+              </span>
+              <span>
+                Apagar pedidos, favoritos e ofertas publicadas?
+                <small>O app volta ao começo, com o tour de boas-vindas.</small>
+              </span>
+              <span className="confirm-inline">
+                <span>
+                  <button className="code-button" type="button" onClick={() => setConfirmReset(false)}>
+                    Manter
+                  </button>
+                  <button className="primary-button" type="button" onClick={app.resetDemo}>
+                    Reiniciar
+                  </button>
+                </span>
+              </span>
+            </div>
+          ) : (
+            <button className="menu-row" type="button" onClick={() => setConfirmReset(true)}>
+              <span className="menu-icon">
+                <Icon name="reset" size={18} />
+              </span>
+              <span>
+                Reiniciar demonstração
+                <small>Volta pedidos, favoritos e ofertas ao começo</small>
+              </span>
+              <Icon name="arrow" size={18} />
+            </button>
+          )}
+        </div>
+        <p className="demo-note">
+          Projeto de demonstração: não há servidor, tudo fica salvo só neste aparelho. Para mostrar os dois lados, abra
+          o Modo cantina em outra janela: o que muda numa aparece na outra.
+        </p>
       </section>
 
       <Sheet open={openCoupon !== null} onClose={() => setOpenCoupon(null)} label="Cupom de desconto">

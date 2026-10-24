@@ -15,12 +15,30 @@ A cada envio para o branch `main`, o GitHub Actions publica a versão nova autom
 
 ## Funcionalidades
 
-- **Descobrir:** ofertas do dia com busca, categorias e o que está acabando.
-- **Reservar e pagar:** Pix ou cartão (simulados), em três etapas.
-- **Código de retirada:** ticket com nome, código e código de barras; no balcão, "deslize para retirar".
-- **Pedidos:** códigos ativos e histórico de retiradas.
-- **Favoritos** e **Perfil** com impacto, conquistas e cupons de desconto.
-- Tour de boas-vindas, "primeiros passos" e ajuda com dúvidas frequentes.
+- **Descobrir:** ofertas do dia com busca, categorias, o que está acabando e a distância a pé até o pátio.
+- **Horário marcado:** ao reservar, a pessoa escolhe uma faixa de 10 minutos com poucas vagas — ninguém chega junto e não se forma fila.
+- **Reservar e pagar:** Pix ou cartão (simulados), em três etapas, com mapa do campus até o pátio de retirada.
+- **Código de retirada:** ticket com nome, horário, código e código de barras; no balcão, "deslize para retirar".
+- **Refeição solidária:** pagar uma refeição a mais para um colega, ou usar um código da assistência estudantil para retirar de graça.
+- **Modo cantina:** o lado de quem vende — retiradas na ordem dos horários, leitor do código, publicar sobras, impacto do dia e doação ao banco de alimentos.
+- **Alertas:** horário chegando, retirada perto de fechar, favorita que abriu e oferta nova de uma cantina salva.
+- **Desafio do campus:** meta coletiva da semana, ranking por curso e CO₂ evitado.
+- **Pedidos, Favoritos e Perfil** com impacto, conquistas, cupons, modo escuro e tour de boas-vindas.
+
+## Projeto de demonstração
+
+Não há servidor nem dados reais: é um protótipo para apresentar a ideia.
+
+- Ofertas, cantinas, pátios (distâncias), cursos e códigos solidários ficam no próprio código, em `src/data.ts`.
+- Pedidos, favoritos e o que a cantina publica ficam salvos só no navegador do aparelho (`localStorage`).
+- Pagamento, leitura do código e reservas dos outros estudantes são simulados.
+
+**Como apresentar:**
+
+1. Abra o app numa janela (o lado do aluno) e, em outra, o Modo cantina: https://julianomd.github.io/Senac_App/?modo=cantina — as duas ficam sincronizadas.
+2. Reserve uma oferta escolhendo o horário; na janela da cantina, ela aparece em **Retiradas**. Confirme digitando o código que aparece no ticket do aluno (`FZ-` e quatro números).
+3. Para a refeição solidária, use um destes códigos no pagamento: `SOL-2026`, `SOL-4821`, `SOL-1530` ou `SOL-7314` (cada um vale uma vez; a lista atualizada aparece em Modo cantina → Impacto).
+4. Para começar de novo: **Perfil → Demonstração → Reiniciar demonstração**.
 
 ## Como rodar
 

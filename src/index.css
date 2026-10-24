@@ -6036,3 +6036,47 @@ html[data-vt="counter"]::view-transition-old(counter) {
   font-size: 12.5px;
   line-height: 1.35;
 }
+
+.code-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.code-list li {
+  padding: 7px 12px;
+  color: var(--accent-ink);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: var(--accent-soft);
+  border-radius: 10px;
+  user-select: all;
+}
+
+/* Perfil → Demonstração */
+.confirm-reset .confirm-inline {
+  grid-column: 1 / -1;
+}
+
+.confirm-reset .confirm-inline > span {
+  display: flex;
+  gap: 10px;
+}
+
+.confirm-reset .confirm-inline .code-button,
+.confirm-reset .confirm-inline .primary-button {
+  flex: 1;
+  height: 46px;
+}
+
+.demo-note {
+  margin: 10px 4px 0;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.45;
+}

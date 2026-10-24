@@ -72,7 +72,7 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
   const [donate, setDonate] = useState(false);
   const [codeOpen, setCodeOpen] = useState(false);
   const [code, setCode] = useState("");
-  const [codeStatus, setCodeStatus] = useState<"idle" | "ok" | "invalid" | "used">("idle");
+  const [codeStatus, setCodeStatus] = useState<"idle" | "ok" | "invalid" | "unknown" | "used">("idle");
   const solidarity = codeStatus === "ok";
   const total = solidarity ? 0 : food.price * (donate ? 2 : 1);
 
@@ -262,6 +262,7 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
                   </button>
                 )}
                 {codeStatus === "invalid" && <p role="alert">Código inválido: ele tem o formato SOL-1234.</p>}
+                {codeStatus === "unknown" && <p role="alert">Código não encontrado. Confira com a assistência estudantil.</p>}
                 {codeStatus === "used" && <p role="alert">Este código já foi usado.</p>}
               </div>
             ) : (
