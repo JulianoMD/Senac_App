@@ -7,11 +7,11 @@ import Swoosh from "../components/Swoosh";
 import {
   categories,
   clock,
-  foodById,
   foods,
   greeting,
   LOW_STOCK,
   normalize,
+  orderFood,
   orderStage,
   pickupStatus,
   searchSuggestions,
@@ -26,9 +26,9 @@ function ActiveOrderBanner() {
   const { activeOrders: orders, openOrder } = useApp();
   const now = useNow();
   // Mostra primeiro o pedido que já dá para retirar.
-  const order = orders.find((item) => orderStage(foodById(item.foodId), now).phase === "open") ?? orders[0];
+  const order = orders.find((item) => orderStage(orderFood(item), now).phase === "open") ?? orders[0];
   if (!order) return null;
-  const food = foodById(order.foodId);
+  const food = orderFood(order);
   const stage = orderStage(food, now);
 
   return (

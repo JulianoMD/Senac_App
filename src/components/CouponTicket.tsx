@@ -23,7 +23,7 @@ export default function CouponTicket({ coupon }: { coupon: Coupon }) {
       </div>
       <div className="ticket-stub">
         <Barcode code={coupon.ean} className="barcode--large" barHeight={36} />
-        <p>Apresente este código no caixa</p>
+        <p>Use na hora de pagar pelo app, em Cupom de desconto</p>
       </div>
     </div>
   );

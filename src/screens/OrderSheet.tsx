@@ -4,7 +4,7 @@ import CounterView from "../components/CounterView";
 import Icon from "../components/Icon";
 import PickupTicket from "../components/PickupTicket";
 import Sheet from "../components/Sheet";
-import { atClock, brl, foodById, orderStage, user, type Order } from "../data";
+import { atClock, brl, orderFood, orderStage, user, type Order } from "../data";
 import { canTransition, withTransition } from "../motion";
 import { useApp } from "../store";
 import { useNow } from "../time";
@@ -17,7 +17,7 @@ export default function OrderSheet({ order, close }: { order: Order; close: () =
   const [celebrating, setCelebrating] = useState(false);
   const [counterOpen, setCounterOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const food = foodById(order.foodId);
+  const food = orderFood(order);
   const phase = orderStage(food, useNow()).phase;
   const closed = phase === "closed";
 

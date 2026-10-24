@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { brl, clock, distance, foodById, foods } from "./data";
+import { brl, clock, distance, foodById, foods, orderFood } from "./data";
 import { useApp } from "./store";
 import { useNow } from "./time";
 
@@ -53,7 +53,7 @@ export function useAlerts() {
     };
 
     for (const order of app.activeOrders) {
-      const food = foodById(order.foodId);
+      const food = orderFood(order);
       const where = `${food.spot} · ${distance(food.patio)}`;
       if (order.slot && now >= order.slot - SLOT_HEADS_UP && now < order.slot + SLOT_HEADS_UP) {
         send(`slot-${order.id}`, `Seu horário é às ${clock(order.slot)}`, `${food.title} no ${where}. Mostre o ${order.code}.`);

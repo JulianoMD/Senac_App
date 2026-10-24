@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { foodById, slotLabel, user, type Order } from "../data";
+import { orderFood, slotLabel, user, type Order } from "../data";
 import Barcode from "./Barcode";
 import CollectSlider from "./CollectSlider";
 import Icon from "./Icon";
@@ -15,7 +15,7 @@ export default function CounterView({
   close: () => void;
   onCollect: () => void;
 }) {
-  const food = foodById(order.foodId);
+  const food = orderFood(order);
 
   // Mantém a tela acesa enquanto o código está sendo mostrado.
   useEffect(() => {

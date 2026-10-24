@@ -39,7 +39,8 @@ const faq = [
   },
   {
     question: "Como uso um cupom de desconto?",
-    answer: "Abra o cupom em Perfil > Descontos e mostre o código de barras no caixa.",
+    answer:
+      "Na hora de pagar, escolha o cupom em Cupom de desconto: o desconto entra no total na hora. Cada cupom vale uma vez e alguns valem só para certas categorias.",
   },
 ];
 

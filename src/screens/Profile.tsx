@@ -7,7 +7,7 @@ import CountUp from "../components/CountUp";
 import CouponTicket from "../components/CouponTicket";
 import Icon from "../components/Icon";
 import Sheet from "../components/Sheet";
-import { coupons, foodById, tasks, user, welcomeCoupon, type Coupon } from "../data";
+import { foodById, orderTime, tasks, user, walletCoupons, welcomeCoupon, type Coupon } from "../data";
 import avatar from "../assets/avatar-marina.png";
 import { canNotify } from "../alerts";
 import { isIOS, useInstall } from "../install";
@@ -33,7 +33,7 @@ function CopyCodeButton({ code }: { code: string }) {
       await navigator.clipboard.writeText(code);
       toast(`Código ${code} copiado`);
     } catch {
-      toast("Não deu para copiar. Mostre o código de barras no caixa.");
+      toast("Não deu para copiar. Na hora de pagar, escolha o cupom em Cupom de desconto.");
     }
   }
 
@@ -75,7 +75,7 @@ export default function Profile() {
   const hours = 3 + app.orders.filter((order) => order.collected).length * 0.25;
   const levelProgress = Math.min(LEVEL_SIZE, meals - LEVEL_START);
   const unlocked = tasks.every((task) => app.done.includes(task.id));
-  const myCoupons = unlocked ? [welcomeCoupon, ...coupons] : coupons;
+  const myCoupons = walletCoupons(app.done, app.usedCoupons);
 
   const achievements: Achievement[] = [
     {
@@ -119,7 +119,7 @@ export default function Profile() {
       id: "early",
       title: "Madrugadora",
       icon: "clock",
-      unlocked: false,
+      unlocked: app.orders.some((order) => new Date(orderTime(order)).getHours() < 10),
       how: "Reserve uma oferta antes das 10h.",
     },
   ];

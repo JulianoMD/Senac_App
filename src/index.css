@@ -2505,6 +2505,16 @@ svg {
   line-height: 1.4;
 }
 
+/* Cupom que não vale para esta oferta: aparece apagado, com o motivo. */
+.pay-option.is-off {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.coupon-picker .pay-icon {
+  color: var(--accent-ink);
+}
+
 /* Refeição solidária: doar uma a mais ou usar um código recebido da assistência estudantil. */
 .solidarity {
   margin: 4px 20px 0;

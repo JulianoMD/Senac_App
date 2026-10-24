@@ -1,6 +1,6 @@
 import Icon from "../components/Icon";
 import PickupCountdown from "../components/PickupCountdown";
-import { foodById, orderStage, slotLabel } from "../data";
+import { orderFood, orderStage, slotLabel } from "../data";
 import { useApp } from "../store";
 import { useNow } from "../time";
 
@@ -11,8 +11,8 @@ export default function Orders() {
   // O que já dá para retirar vem primeiro (quem fecha antes no topo), depois o que ainda vai abrir.
   const rank = { open: 0, soon: 1, closed: 2 };
   const upcoming = [...activeOrders].sort((a, b) => {
-    const foodA = foodById(a.foodId);
-    const foodB = foodById(b.foodId);
+    const foodA = orderFood(a);
+    const foodB = orderFood(b);
     const byStage = rank[orderStage(foodA, now).phase] - rank[orderStage(foodB, now).phase];
     return byStage || foodA.pickupEnd - foodB.pickupEnd;
   });
@@ -27,7 +27,7 @@ export default function Orders() {
       {activeOrders.length ? (
         <div className="strip-list">
           {upcoming.map((order) => {
-            const food = foodById(order.foodId);
+            const food = orderFood(order);
             const stage = orderStage(food, now);
             return (
               <div className="halo strip-halo" key={order.id}>
@@ -72,7 +72,7 @@ export default function Orders() {
           <h2 className="section-title">Retirados</h2>
           <div className="history">
             {history.map((order) => {
-              const food = foodById(order.foodId);
+              const food = orderFood(order);
               return (
                 <button className="history-row" type="button" key={order.id} onClick={() => openOrder(order.id)}>
                   <img src={food.image} alt="" />

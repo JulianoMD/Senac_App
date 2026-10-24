@@ -9,12 +9,14 @@ import StoreMark from "../components/StoreMark";
 import {
   brl,
   clock,
+  couponFor,
   discountOf,
   distance,
   paymentMethods,
   pickupSlots,
   pickupStatus,
   SLOT_MINUTES,
+  walletCoupons,
   type Food,
   type Order,
 } from "../data";
@@ -74,7 +76,13 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
   const [code, setCode] = useState("");
   const [codeStatus, setCodeStatus] = useState<"idle" | "ok" | "invalid" | "unknown" | "used">("idle");
   const solidarity = codeStatus === "ok";
-  const total = solidarity ? 0 : food.price * (donate ? 2 : 1);
+
+  // Cupom: só os da carteira que valem para esta oferta; desconta da refeição da pessoa.
+  const wallet = walletCoupons(app.done, app.usedCoupons).map((coupon) => ({ coupon, check: couponFor(coupon, food) }));
+  const [couponCode, setCouponCode] = useState<string | null>(null);
+  const chosen = solidarity ? undefined : wallet.find((item) => item.coupon.code === couponCode && item.check.ok);
+  const couponDiscount = chosen?.check.ok ? chosen.check.amount : 0;
+  const total = solidarity ? 0 : food.price - couponDiscount + (donate ? food.price : 0);
 
   function applyCode() {
     setCodeStatus(app.checkSolidarityCode(code));
@@ -88,7 +96,13 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
     window.setTimeout(() => {
       const paidWith = solidarity ? "Solidário" : (paymentMethods.find((item) => item.id === method)?.short ?? "Pix");
       if (solidarity) app.redeemSolidarityCode(code);
-      const created = app.pay(food, paidWith, { slot: slot.start, donated: donate && !solidarity, solidarity });
+      const created = app.pay(food, paidWith, {
+        slot: slot.start,
+        donated: donate && !solidarity,
+        solidarity,
+        coupon: chosen?.coupon.code,
+        couponDiscount: couponDiscount || undefined,
+      });
       go("done", () => {
         setOrder(created);
         setPaying(false);
@@ -119,7 +133,8 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
               <>Refeição solidária confirmada. Agora é só passar no balcão.</>
             ) : (
               <>
-                E economizou <strong>{brl.format(food.original - food.price)}</strong>. Agora é só passar no balcão.
+                E economizou <strong>{brl.format(food.original - food.price + (order.couponDiscount ?? 0))}</strong>
+                {order.coupon ? `, com o cupom ${order.coupon}` : ""}. Agora é só passar no balcão.
               </>
             )}
           </p>
@@ -213,6 +228,35 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
                   value={item.id}
                   checked={method === item.id}
                   onChange={() => setMethod(item.id)}
+                />
+              </label>
+            ))}
+          </fieldset>
+        )}
+
+        {/* Cupom de desconto: os da carteira aparecem aqui; os que não valem dizem por quê. */}
+        {!solidarity && wallet.length > 0 && (
+          <fieldset className="pay-methods coupon-picker">
+            <legend>Cupom de desconto</legend>
+            <label className="pay-option">
+              <span className="pay-text">Sem cupom</span>
+              <input type="radio" name="coupon" checked={!chosen} onChange={() => setCouponCode(null)} />
+            </label>
+            {wallet.map(({ coupon, check }) => (
+              <label className={`pay-option ${check.ok ? "" : "is-off"}`} key={coupon.code}>
+                <span className="pay-icon">
+                  <Icon name="ticket" size={20} />
+                </span>
+                <span className="pay-text">
+                  {coupon.value} · {coupon.code}
+                  <small>{check.ok ? `−${brl.format(check.amount)} nesta oferta` : check.reason}</small>
+                </span>
+                <input
+                  type="radio"
+                  name="coupon"
+                  disabled={!check.ok}
+                  checked={chosen?.coupon.code === coupon.code}
+                  onChange={() => setCouponCode(coupon.code)}
                 />
               </label>
             ))}

@@ -32,6 +32,8 @@ type Saved = {
   solidarityCodes: string[];
   /** Códigos solidários já usados (cada um vale uma vez). */
   redeemed: string[];
+  /** Cupons já usados em algum pagamento (pelo código). */
+  usedCoupons: string[];
   /** Avisos já enviados (para não repetir). */
   alerted: string[];
   /** Retiradas de outros estudantes confirmadas no balcão pelo Modo cantina. */
@@ -82,6 +84,7 @@ const initialState: Saved = {
   leftoversDonated: 0,
   solidarityCodes: [],
   redeemed: [],
+  usedCoupons: [],
   alerted: [],
   counterCollected: [],
 };
@@ -266,7 +269,11 @@ function useAppState() {
     }
   }
 
-  function pay(food: Food, paidWith: string, extra: Pick<Order, "slot" | "donated" | "solidarity"> = {}) {
+  function pay(
+    food: Food,
+    paidWith: string,
+    extra: Pick<Order, "slot" | "donated" | "solidarity" | "coupon" | "couponDiscount"> = {},
+  ) {
     const order = createOrder(food, paidWith, extra);
     pendingFly.current = true;
     // Refeição doada vira um código novo no fundo solidário (para a assistência entregar).
@@ -276,8 +283,10 @@ function useAppState() {
       stock: { ...current.stock, [food.id]: Math.max(0, (current.stock[food.id] ?? 0) - 1) },
       donated: current.donated + (gift ? 1 : 0),
       solidarityCodes: gift ? [...current.solidarityCodes, gift] : current.solidarityCodes,
+      usedCoupons: extra.coupon ? [...current.usedCoupons, extra.coupon] : current.usedCoupons,
     }));
     complete("reserve");
+    if (extra.coupon) complete("coupon");
     return order;
   }
 

@@ -255,6 +255,10 @@ export type Coupon = {
   daysLeft: number;
   rule: string;
   image: string;
+  /** Regra que o pagamento aplica: porcentagem ou valor fixo, com mínimo e categorias opcionais. */
+  discount: { kind: "percent" | "fixed"; amount: number };
+  min?: number;
+  categories?: string[];
 };
 
 export const coupons: Coupon[] = [
@@ -265,18 +269,23 @@ export const coupons: Coupon[] = [
     code: "SENAC20",
     ean: ean13("789123400020"),
     daysLeft: 14,
-    rule: "No próximo pedido",
+    rule: "Em pratos do dia",
     image: foods[0].image,
+    discount: { kind: "percent", amount: 20 },
+    categories: ["Pratos"],
   },
   {
-    id: "volte10",
-    value: "R$ 10 OFF",
+    id: "volte4",
+    value: "R$ 4 OFF",
     category: "lanches e salgados",
-    code: "VOLTE10",
-    ean: ean13("789123400010"),
+    code: "VOLTE4",
+    ean: ean13("789123400004"),
     daysLeft: 5,
-    rule: "Acima de R$ 25",
+    rule: "Acima de R$ 9",
     image: foods[4].image,
+    discount: { kind: "fixed", amount: 4 },
+    min: 9,
+    categories: ["Lanches", "Salgados"],
   },
 ];
 
@@ -289,7 +298,22 @@ export const welcomeCoupon: Coupon = {
   daysLeft: 30,
   rule: "Em qualquer oferta",
   image: foods[5].image,
+  discount: { kind: "fixed", amount: 5 },
 };
+
+// Cupons na carteira: o de boas-vindas chega ao concluir os primeiros passos; usado, sai da lista.
+export function walletCoupons(done: TaskId[], used: string[]) {
+  const unlocked = tasks.every((task) => done.includes(task.id));
+  return (unlocked ? [welcomeCoupon, ...coupons] : coupons).filter((coupon) => !used.includes(coupon.code));
+}
+
+// Quanto o cupom desconta desta oferta (só da refeição da pessoa, não da solidária) — ou por que não vale.
+export function couponFor(coupon: Coupon, food: Food): { ok: true; amount: number } | { ok: false; reason: string } {
+  if (coupon.categories && !coupon.categories.includes(food.category)) return { ok: false, reason: `Só para ${coupon.category}` };
+  if (coupon.min && food.price < coupon.min) return { ok: false, reason: `Para ofertas acima de ${brl.format(coupon.min)}` };
+  const raw = coupon.discount.kind === "percent" ? (food.price * coupon.discount.amount) / 100 : coupon.discount.amount;
+  return { ok: true, amount: Math.min(food.price, Math.round(raw * 100) / 100) };
+}
 
 export type TaskId = "account" | "favorite" | "reserve" | "code" | "coupon";
 
@@ -314,6 +338,14 @@ export type Order = {
   donated?: boolean;
   /** Retirada paga com um código solidário (refeição doada). */
   solidarity?: boolean;
+  /** Janela de retirada no momento da reserva (as ofertas da demonstração são recalculadas ao abrir o app). */
+  pickupStart?: number;
+  pickupEnd?: number;
+  /** Quando a reserva foi feita. */
+  createdAt?: number;
+  /** Cupom usado no pagamento e quanto ele descontou. */
+  coupon?: string;
+  couponDiscount?: number;
 };
 
 export const paymentMethods = [
@@ -324,18 +356,38 @@ export const paymentMethods = [
 export function createOrder(
   food: Food,
   paidWith: string,
-  extra: Pick<Order, "slot" | "donated" | "solidarity"> = {},
+  extra: Pick<Order, "slot" | "donated" | "solidarity" | "coupon" | "couponDiscount"> = {},
 ): Order {
   const number = Math.floor(1000 + Math.random() * 9000);
+  const createdAt = Date.now();
   return {
-    id: `${food.id}-${number}-${Date.now()}`,
+    id: `${food.id}-${number}-${createdAt}`,
     code: `FZ-${number}`,
     ean: ean13(`78912345${number}`),
     foodId: food.id,
     paidWith,
+    pickupStart: food.pickupStart,
+    pickupEnd: food.pickupEnd,
+    createdAt,
     ...extra,
   };
 }
+
+// A oferta como estava quando a pessoa reservou: o pedido mantém o próprio horário mesmo que as
+// ofertas da demonstração sejam recalculadas depois (ao abrir o app de novo mais tarde).
+export function orderFood(order: Order): Food {
+  const food = foodById(order.foodId);
+  if (!order.pickupStart || !order.pickupEnd) return food;
+  return {
+    ...food,
+    pickupStart: order.pickupStart,
+    pickupEnd: order.pickupEnd,
+    pickup: `${clock(order.pickupStart)}–${clock(order.pickupEnd)}`,
+  };
+}
+
+// Pedidos antigos não guardavam a hora: ela também está no fim do id.
+export const orderTime = (order: Order) => order.createdAt ?? Number(order.id.split("-").at(-1));
 
 // Reservas de outros estudantes que a cantina vê no painel (simuladas, estáveis por oferta).
 const classmates = ["Lucas Prado", "Ana Ribeiro", "João Kenji", "Beatriz Lima", "Rafael Souza", "Camila Torres"];

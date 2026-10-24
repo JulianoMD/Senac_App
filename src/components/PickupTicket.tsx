@@ -1,4 +1,4 @@
-import { foodById, orderStage, slotLabel, user, type Order } from "../data";
+import { orderFood, orderStage, slotLabel, user, type Order } from "../data";
 import { useNow } from "../time";
 import Barcode from "./Barcode";
 import PickupCountdown from "./PickupCountdown";
@@ -14,7 +14,7 @@ export default function PickupTicket({
   torn?: boolean;
   onCodeClick?: () => void;
 }) {
-  const food = foodById(order.foodId);
+  const food = orderFood(order);
   const stage = orderStage(food, useNow());
   const showStub = !order.collected || torn;
 
