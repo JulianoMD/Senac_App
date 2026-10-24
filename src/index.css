@@ -6,8 +6,11 @@
 }
 
 /* Identidade: azul Senac + laranja Senac. Verde só para "pronto/retirado", vermelho só para cancelar.
-   Os nomes antigos de cor (sun, tomato, mint…) apontam para essa paleta para não existir arco-íris. */
-:root {
+   Os nomes antigos de cor (sun, tomato, mint…) apontam para essa paleta para não existir arco-íris.
+   No modo escuro, o ticket e o modo balcão continuam claros como papel (o leitor do caixa
+   precisa de barras escuras sobre branco), por isso também recebem esta paleta. */
+:root,
+:root[data-theme="dark"] :is(.ticket, .counter) {
   --bg: #faf7f2;
   --bg-deep: #f0e9df;
   --surface: #ffffff;
@@ -15,9 +18,12 @@
   --text-2: #566074;
   --muted: #646b7c;
   --line: #ece6dc;
+  --track: #d9d3ca;
 
   --brand: #1450a3;
+  --brand-fill: var(--brand);
   --brand-deep: #0b2e63;
+  --brand-ink: var(--brand-deep);
   --brand-soft: #eaf1fb;
   --brand-mid: #7aa3df;
   --accent: #f7941d;
@@ -50,9 +56,48 @@
   --berry-soft: var(--brand-soft);
 
   --shadow-card: 0 1px 2px rgb(18 26 45 / 5%), 0 12px 28px -14px rgb(18 26 45 / 18%);
+  --sk-shine: linear-gradient(100deg, #eee7dc 0%, #eee7dc 40%, #f9f5ef 50%, #eee7dc 60%, #eee7dc 100%);
+}
+
+/* Modo escuro: fundos azul-noite, mesma marca. Azul e verde ficam mais claros quando são texto
+   (contraste AA sobre o fundo escuro); botões azuis usam um azul firme com texto branco. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1220;
+  --bg-deep: #151c2d;
+  --surface: #192133;
+  --ink: #edf1f8;
+  --text-2: #b3bccc;
+  --muted: #8e98ab;
+  --line: #273145;
+  --track: #3a4559;
+
+  --brand: #78a9f5;
+  --brand-fill: #2563c4;
+  --brand-ink: #b9d2fa;
+  --brand-soft: #1b2c4a;
+  --brand-mid: #5b8bd6;
+  --accent-ink: #ffb260;
+  --accent-soft: #3a2914;
+  --success: #34b37a;
+  --success-ink: #6fd8a6;
+  --success-soft: #16352a;
+  --danger: #f2705b;
+  --danger-ink: #ff9c8c;
+  --danger-soft: #3d1f1b;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 40%), 0 12px 28px -14px rgb(0 0 0 / 70%);
+  --sk-shine: linear-gradient(100deg, #1d2536 0%, #1d2536 40%, #2a3448 50%, #1d2536 60%, #1d2536 100%);
+}
+
+:root[data-theme="dark"] :is(.ticket, .counter) {
+  color: var(--ink);
+  color-scheme: light;
+}
+
+:root {
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --spring: cubic-bezier(0.3, 1.45, 0.5, 1);
-  --sk-shine: linear-gradient(100deg, #eee7dc 0%, #eee7dc 40%, #f9f5ef 50%, #eee7dc 60%, #eee7dc 100%);
 
   font-family: var(--font-sans);
   font-size: 15px;
@@ -160,6 +205,19 @@ svg {
   height: 26px;
 }
 
+/* No escuro, o logo azul-marinho sumiria no fundo: usa a versão branca (monocromática). */
+:root[data-theme="dark"] .brand-logo {
+  filter: brightness(0) invert(1);
+}
+
+/* Códigos de barras dos cupons ganham uma plaquinha branca: o leitor precisa de barras escuras. */
+:root[data-theme="dark"] .ticket-strip--coupon .barcode {
+  color: #121a2d;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 0 0 4px #ffffff;
+}
+
 .wordmark {
   padding-left: 12px;
   font-size: 17px;
@@ -219,7 +277,7 @@ svg {
 
 .hero {
   margin: 4px 16px 0;
-  padding: 20px 20px 18px;
+  padding: 15px 18px 16px;
 }
 
 .swoosh {
@@ -228,24 +286,24 @@ svg {
 }
 
 .hero-swoosh {
-  top: -26px;
-  right: -38px;
-  width: 112px;
+  top: -30px;
+  right: -40px;
+  width: 104px;
 }
 
 .hero-greeting {
   position: relative;
   margin: 0;
   color: var(--sun);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
 }
 
 .hero h1 {
   position: relative;
-  max-width: 230px;
-  margin: 6px 0 0;
-  font-size: 24px;
+  max-width: 200px;
+  margin: 4px 0 0;
+  font-size: 21px;
   font-weight: 800;
   letter-spacing: -0.035em;
   line-height: 1.18;
@@ -446,7 +504,7 @@ svg {
 /* Busca */
 
 .search-wrap {
-  margin: 16px 16px 0;
+  margin: 12px 16px 0;
 }
 
 .search-box {
@@ -530,7 +588,7 @@ svg {
   display: flex;
   gap: 12px;
   width: 100%;
-  margin-top: 18px;
+  margin-top: 14px;
   padding: 0 16px 4px;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
@@ -548,7 +606,7 @@ svg {
   flex-direction: column;
   gap: 6px;
   align-items: center;
-  width: 70px;
+  width: 66px;
   padding: 0;
   color: var(--text-2);
   font-size: 13px;
@@ -559,8 +617,8 @@ svg {
 
 .category-media {
   display: grid;
-  width: 66px;
-  height: 66px;
+  width: 60px;
+  height: 60px;
   overflow: hidden;
   color: var(--brand);
   background: var(--brand-soft);
@@ -604,9 +662,9 @@ svg {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 66px;
-  height: 66px;
-  margin-left: -33px;
+  width: 60px;
+  height: 60px;
+  margin-left: -30px;
   border: 3px solid var(--accent);
   border-radius: 50%;
   pointer-events: none;
@@ -616,7 +674,7 @@ svg {
 
 .content-section {
   width: 100%;
-  margin-top: 26px;
+  margin-top: 22px;
 }
 
 .section-title {
@@ -662,6 +720,91 @@ svg {
 
 .feed--flush {
   padding: 0;
+}
+
+/* Lista compacta do dia: foto quadrada ao lado e quatro linhas curtas (cabem 4–5 por tela) */
+
+.feed--rows {
+  gap: 12px;
+}
+
+.food-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 20px;
+}
+
+.food-row .food-media {
+  flex: none;
+  width: 100px;
+  aspect-ratio: 1;
+  border-radius: 14px;
+}
+
+.food-row .food-media::after {
+  display: none;
+}
+
+.food-row .stock-badge {
+  top: auto;
+  bottom: 6px;
+  left: 6px;
+  padding: 5px 8px;
+  font-size: 11.5px;
+}
+
+.food-row-body {
+  flex: 1;
+  min-width: 0;
+  padding-right: 34px;
+}
+
+.food-row-place {
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.food-row h3 {
+  display: -webkit-box;
+  margin: 2px 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.food-row .food-meta {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.food-row .food-price {
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.food-row .food-price strong {
+  font-size: 17px;
+}
+
+.food-row .save-button {
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  background: var(--bg);
 }
 
 /* Card de oferta */
@@ -1072,7 +1215,7 @@ svg {
 }
 
 .status--soon::before {
-  background: var(--brand);
+  background: var(--brand-fill);
   animation: none;
 }
 
@@ -1560,6 +1703,76 @@ svg {
   font-weight: 500;
 }
 
+/* Linha com escolha embaixo (Aparência): o controle ocupa a largura toda, cabe até em 320px. */
+.menu-row--stack {
+  grid-template-columns: auto minmax(0, 1fr);
+  row-gap: 12px;
+  cursor: default;
+}
+
+.menu-row--stack:hover {
+  background: transparent;
+}
+
+.segmented {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 3px;
+  background: var(--bg);
+  border: 0;
+  border-radius: 999px;
+}
+
+.segmented legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.segmented label {
+  position: relative;
+  flex: 1;
+  cursor: pointer;
+}
+
+.segmented input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  display: block;
+  padding: 9px 4px;
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 999px;
+  transition:
+    background 200ms ease,
+    color 200ms ease;
+}
+
+.segmented input:checked + span {
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
 .menu-icon {
   display: grid;
   width: 32px;
@@ -1586,7 +1799,7 @@ svg {
   cursor: pointer;
   background:
     radial-gradient(circle at center, #ffffff 10.5px, #fff0 11px) 0 0 / 28px 28px no-repeat,
-    #d9d3ca;
+    var(--track);
   border-radius: 999px;
   transition:
     background-color 250ms ease,
@@ -1595,7 +1808,7 @@ svg {
 }
 
 .switch:checked {
-  background-color: var(--brand);
+  background-color: var(--brand-fill);
   background-position: 20px 0;
 }
 
@@ -1612,7 +1825,7 @@ svg {
   font-size: 15.5px;
   font-weight: 800;
   letter-spacing: -0.01em;
-  background: var(--blue);
+  background: var(--brand-fill);
   border: 0;
   border-radius: 999px;
   box-shadow: 0 10px 20px -10px rgb(21 84 176 / 70%);
@@ -1894,7 +2107,7 @@ svg {
   width: 100%;
   margin-top: 14px;
   padding: 12px 14px;
-  color: var(--blue-deep);
+  color: var(--brand-ink);
   font-size: 14px;
   text-align: left;
   background: var(--blue-soft);
@@ -2049,7 +2262,7 @@ svg {
 
 .steps li.is-current > span {
   color: #ffffff;
-  background: var(--blue);
+  background: var(--brand-fill);
 }
 
 .order-summary {
@@ -2516,7 +2729,7 @@ svg {
 
 .status-steps li.is-pending::before,
 .status-steps li.is-pending::after {
-  background: #d9d3ca;
+  background: var(--track);
 }
 
 .status-steps li.is-closed {
@@ -2770,7 +2983,7 @@ svg {
 }
 
 .float-chip--white {
-  color: var(--ink);
+  color: #121a2d;
   background: #ffffff;
 }
 
@@ -3077,7 +3290,7 @@ svg {
   scale: 1;
 }
 
-/* Fotos ainda carregando usam o mesmo brilho das silhuetas dos cards */
+/* Fotos ainda carregando: um brilho passa pelo espaço reservado */
 :where(.food-media, .item-hero, .category-media, .ticket-photo, .onboarding-photo):has(> .photo:not(.is-loaded)) {
   background: var(--sk-shine);
   background-attachment: fixed;
@@ -3304,26 +3517,26 @@ html[data-vt="category"] .category-ring {
   view-transition-name: category-ring;
 }
 
-/* Troca de categoria e chegada das ofertas: só a área das ofertas troca (topo, busca e
+/* Troca de categoria: só a área das ofertas troca (topo, busca e
    categorias ficam parados). A lista antiga some rápido e a nova sobe suave — sem sobreposição. */
-html:is([data-vt="category"], [data-vt="skeleton"]) .results {
+html[data-vt="category"] .results {
   view-transition-name: results;
 }
 
-html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-group(results) {
+html[data-vt="category"]::view-transition-group(results) {
   animation-duration: 0s;
 }
 
-html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-old(results) {
+html[data-vt="category"]::view-transition-old(results) {
   animation: fade-out 130ms ease-in both;
 }
 
-html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-new(results) {
+html[data-vt="category"]::view-transition-new(results) {
   animation: results-in 420ms var(--ease-out) 100ms both;
 }
 
-html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-old(root),
-html:is([data-vt="category"], [data-vt="skeleton"])::view-transition-new(root) {
+html[data-vt="category"]::view-transition-old(root),
+html[data-vt="category"]::view-transition-new(root) {
   animation-duration: 0s;
 }
 
@@ -3438,6 +3651,14 @@ html[data-vt="sheet-back"]::view-transition-image-pair(offer-card) {
 
 html[data-vt="sheet-back"]::view-transition-image-pair(food-hero) {
   animation-name: page-to-photo;
+}
+
+html[data-morph-from="row"][data-vt="sheet"]::view-transition-image-pair(food-hero) {
+  animation-name: row-photo-to-page;
+}
+
+html[data-morph-from="row"][data-vt="sheet-back"]::view-transition-image-pair(food-hero) {
+  animation-name: page-to-row-photo;
 }
 
 /* Sobre o fundo sólido, a soma de luz padrão da View Transition clarearia tudo até o branco. */
@@ -3564,6 +3785,10 @@ html[data-vt="step"]::view-transition-new(offer-card) {
   clip-path: inset(0 round 22px 22px 0 0);
 }
 
+.food-row .food-media {
+  clip-path: inset(0 round 14px);
+}
+
 .item-hero {
   clip-path: inset(0 round 26px 26px 0 0);
 }
@@ -3650,13 +3875,6 @@ html.booted :is(.discover-page, .inside-page) > * {
 }
 
 /* Topo da tela inicial: título surge palavra por palavra */
-
-.hero-sub {
-  position: relative;
-  margin: 8px 0 0;
-  color: rgb(255 255 255 / 72%);
-  font-size: 14px;
-}
 
 .reveal-words > span {
   display: inline-block;
@@ -3809,7 +4027,7 @@ html.booted .reveal-words > span > span {
 
 .float-chip--brand {
   color: #ffffff;
-  background: var(--brand);
+  background: var(--brand-fill);
   border: 2px solid #ffffff;
 }
 
@@ -4041,6 +4259,24 @@ html.booted .reveal-words > span > span {
   }
   to {
     clip-path: inset(0 round 22px 22px 0 0);
+  }
+}
+
+@keyframes row-photo-to-page {
+  from {
+    clip-path: inset(0 round 14px);
+  }
+  to {
+    clip-path: inset(0 round 0);
+  }
+}
+
+@keyframes page-to-row-photo {
+  from {
+    clip-path: inset(0 round 0);
+  }
+  to {
+    clip-path: inset(0 round 14px);
   }
 }
 
@@ -4482,6 +4718,11 @@ html[data-motion="reduced"] .medal.is-flipped .medal-back {
   color: var(--muted);
 }
 
+.sold-note {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
 .fact-text {
   display: flex;
   flex-direction: column;
@@ -4497,67 +4738,6 @@ html[data-motion="reduced"] .medal.is-flipped .medal-back {
   padding-top: 12px;
   text-align: left;
   border-top: 1px solid rgb(21 84 176 / 14%);
-}
-
-/* Silhuetas dos cards enquanto as ofertas carregam (o brilho passa por todas ao mesmo tempo) */
-
-.sk {
-  background: var(--sk-shine);
-  background-attachment: fixed;
-  background-size: 200vw 100%;
-  animation: sk-shimmer 1.6s linear infinite;
-}
-
-.skeleton-card {
-  pointer-events: none;
-  box-shadow: none;
-  outline: 1px solid var(--line);
-  outline-offset: -1px;
-}
-
-.sk-media {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: 22px 22px 0 0;
-}
-
-.sk-store {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  width: 34px;
-  height: 34px;
-  background: rgb(255 255 255 / 60%);
-  border-radius: 50%;
-}
-
-.sk-line {
-  display: block;
-  height: 12px;
-  border-radius: 6px;
-}
-
-.sk-line--title {
-  width: 150px;
-  height: 16px;
-}
-
-.sk-line--meta {
-  width: 118px;
-  margin-top: 9px;
-}
-
-.sk-line--price {
-  width: 78px;
-  height: 18px;
-}
-
-.sk-pill {
-  display: block;
-  width: 44px;
-  height: 18px;
-  margin-top: 4px;
-  border-radius: 6px;
 }
 
 /* Modo balcão: tela cheia, fundo branco e código grande */

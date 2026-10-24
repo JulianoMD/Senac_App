@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Checklist from "../components/Checklist";
 import FoodCard from "../components/FoodCard";
-import FoodCardSkeleton from "../components/FoodCardSkeleton";
 import Icon from "../components/Icon";
 import Photo from "../components/Photo";
 import Swoosh from "../components/Swoosh";
@@ -50,26 +49,12 @@ function ActiveOrderBanner() {
   );
 }
 
-const headline = "Bateu a fome? Garanta agora e retire sem fila.";
-
-// As ofertas "chegam" uma vez por visita: na primeira entrada aparecem as silhuetas dos cards
-// e depois o conteúdo real no mesmo lugar (com dados de um servidor, esse seria o tempo de busca).
-let offersReady = false;
+const headline = "Bateu a fome? Retire sem fila.";
 
 export default function Discover() {
-  const { stock } = useApp();
+  const { stock, activeOrders } = useApp();
   const now = useNow();
   const [category, setCategory] = useState("Todos");
-  const [loading, setLoading] = useState(!offersReady);
-
-  useEffect(() => {
-    if (!loading) return;
-    const timer = window.setTimeout(() => {
-      offersReady = true;
-      withTransition("skeleton", () => setLoading(false));
-    }, 650);
-    return () => window.clearTimeout(timer);
-  }, [loading]);
   const [search, setSearch] = useState("");
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -114,24 +99,26 @@ export default function Discover() {
 
   return (
     <main className="discover-page">
-      <section className="hero">
-        <Swoosh className="hero-swoosh" />
-        <p className="hero-greeting">
-          {greeting()}, {user.firstName}
-        </p>
-        {/* O título surge palavra por palavra na primeira entrada. */}
-        <h1 className="reveal-words" aria-label={headline}>
-          {headline.split(" ").map((word, index) => (
-            <span key={index} aria-hidden="true">
-              <span style={{ animationDelay: `${120 + index * 55}ms` }}>{word}</span>{" "}
-            </span>
-          ))}
-        </h1>
-        <p className="hero-sub">Pague no app e retire com seu código.</p>
-      </section>
-
-      <ActiveOrderBanner />
-      <Checklist />
+      {/* Topo enxuto para a comida aparecer já na primeira tela. Com pedido em andamento,
+          o banner do pedido (o que mais importa agora) ocupa o lugar da saudação. */}
+      {activeOrders.length > 0 ? (
+        <ActiveOrderBanner />
+      ) : (
+        <section className="hero">
+          <Swoosh className="hero-swoosh" />
+          <p className="hero-greeting">
+            {greeting()}, {user.firstName}
+          </p>
+          {/* O título surge palavra por palavra na primeira entrada. */}
+          <h1 className="reveal-words" aria-label={headline}>
+            {headline.split(" ").map((word, index) => (
+              <span key={index} aria-hidden="true">
+                <span style={{ animationDelay: `${120 + index * 55}ms` }}>{word}</span>{" "}
+              </span>
+            ))}
+          </h1>
+        </section>
+      )}
 
       <div className="search-wrap">
         <label className="search-box">
@@ -185,28 +172,8 @@ export default function Discover() {
         ))}
       </div>
 
-      <div className="results" key={loading ? "loading" : category}>
-        {loading ? (
-          <div role="status" aria-label="Carregando ofertas">
-            <section className="content-section">
-              <h2 className="section-title">
-                <span className="live-dot" aria-hidden="true" />
-                Acabando agora
-              </h2>
-              <div className="carousel">
-                <FoodCardSkeleton />
-                <FoodCardSkeleton />
-              </div>
-            </section>
-            <section className="content-section">
-              <h2 className="section-title">Disponíveis hoje</h2>
-              <div className="feed">
-                <FoodCardSkeleton />
-                <FoodCardSkeleton />
-              </div>
-            </section>
-          </div>
-        ) : filtered.length === 0 ? (
+      <div className="results" key={category}>
+        {filtered.length === 0 ? (
           <div className="empty-state">
             <span className="empty-icon tone-blue">
               <Icon name="search" size={26} />
@@ -246,12 +213,15 @@ export default function Discover() {
                 </div>
               </section>
             )}
+            {/* Primeiros passos entre as seções: à vista, sem empurrar a comida para baixo. */}
+            <Checklist />
             {others.length > 0 && (
               <section className="content-section">
                 <h2 className="section-title">Disponíveis hoje</h2>
-                <div className="feed">
+                {/* Lista compacta (foto ao lado): cabem 4–5 ofertas por tela em vez de 2. */}
+                <div className="feed feed--rows">
                   {others.map((food) => (
-                    <FoodCard food={food} key={food.id} />
+                    <FoodCard food={food} key={food.id} layout="row" />
                   ))}
                 </div>
               </section>

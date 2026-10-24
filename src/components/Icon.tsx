@@ -20,6 +20,7 @@ export type IconName =
   | "leaf"
   | "location"
   | "lock"
+  | "moon"
   | "pix"
   | "play"
   | "profile"
@@ -116,6 +117,7 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
     </>
   ),
+  moon: <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" />,
   pix: <path d="m12 3 9 9-9 9-9-9 9-9Z M8 12l4-4 4 4-4 4-4-4Z" />,
   play: (
     <>

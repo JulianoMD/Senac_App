@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createOrder, foods, tasks, type Food, type Order, type TaskId } from "./data";
-import { flyToOrders, morphCard, withTransition } from "./motion";
+import { flyToOrders, markMorphFrom, morphCard, withTransition } from "./motion";
 
 export type Tab = "discover" | "orders" | "favorites" | "profile";
 
@@ -10,6 +10,7 @@ export type Hint = "favorite" | "coupon" | null;
 type Toast = { id: number; message: string; leaving?: boolean; action?: { label: string; run: () => void } };
 
 export type MotionPreference = "system" | "full" | "reduced";
+export type ThemePreference = "system" | "light" | "dark";
 
 type Saved = {
   favorites: number[];
@@ -20,9 +21,9 @@ type Saved = {
   checklistHidden: boolean;
   notify: boolean;
   motion: MotionPreference;
+  theme: ThemePreference;
 };
 
-const reduceQuery = "(prefers-reduced-motion: reduce)";
 
 // Atalhos do app instalado abrem direto numa aba: ?aba=pedidos, ?aba=favoritos ou ?aba=perfil.
 function tabFromUrl(): Tab {
@@ -37,8 +38,17 @@ function tabFromUrl(): Tab {
   return "discover";
 }
 
-function systemPrefersReduced() {
-  return typeof matchMedia === "function" && matchMedia(reduceQuery).matches;
+// Acompanha uma preferência do sistema (reduzir movimento, tema escuro) e reage quando ela muda.
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() => typeof matchMedia === "function" && matchMedia(query).matches);
+  useEffect(() => {
+    if (typeof matchMedia !== "function") return;
+    const list = matchMedia(query);
+    const onChange = () => setMatches(list.matches);
+    list.addEventListener("change", onChange);
+    return () => list.removeEventListener("change", onChange);
+  }, [query]);
+  return matches;
 }
 
 const STORAGE_KEY = "fila-zero:state:v1";
@@ -52,6 +62,7 @@ const initialState: Saved = {
   checklistHidden: false,
   notify: true,
   motion: "system",
+  theme: "system",
 };
 
 function load(): Saved {
@@ -72,7 +83,8 @@ function useAppState() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [hint, setHintState] = useState<Hint>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [systemReduced, setSystemReduced] = useState(systemPrefersReduced);
+  const systemReduced = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const systemDark = useMediaQuery("(prefers-color-scheme: dark)");
   const toastId = useRef(0);
   const hintTimer = useRef<number>(undefined);
   const pendingFly = useRef(false);
@@ -85,19 +97,19 @@ function useAppState() {
     }
   }, [saved]);
 
-  useEffect(() => {
-    if (typeof matchMedia !== "function") return;
-    const query = matchMedia(reduceQuery);
-    const onChange = () => setSystemReduced(query.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
-
   // Segue o "reduzir movimento" do sistema, a menos que a pessoa escolha outra coisa no Perfil.
   const reducedMotion = saved.motion === "reduced" || (saved.motion === "system" && systemReduced);
   useLayoutEffect(() => {
     document.documentElement.dataset.motion = reducedMotion ? "reduced" : "full";
   }, [reducedMotion]);
+
+  // Tema: segue o claro/escuro do celular, a menos que a pessoa escolha outro no Perfil.
+  // (O index.html aplica o mesmo tema antes da primeira pintura, sem piscar branco.)
+  const dark = saved.theme === "dark" || (saved.theme === "system" && systemDark);
+  useLayoutEffect(() => {
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#0d1220" : "#faf7f2");
+  }, [dark]);
 
   function update(patch: (current: Saved) => Partial<Saved>) {
     setSaved((current) => ({ ...current, ...patch(current) }));
@@ -151,10 +163,11 @@ function useAppState() {
     // data-morph diz ao CSS qual card vira a página (com a foto viajando à parte).
     const card = morphCard(food.id);
     if (card) card.dataset.morph = "photo";
-    withTransition(card ? "sheet" : "page", () => {
+    const transition = withTransition(card ? "sheet" : "page", () => {
       if (card) delete card.dataset.morph;
       setSelected(food);
     });
+    markMorphFrom(card, transition);
   }
 
   // E volta para o card ao fechar (a menos que o painel tenha sido arrastado para fora).
@@ -172,6 +185,7 @@ function useAppState() {
       setSelected(null);
       if (card) card.dataset.morph = morph;
     });
+    markMorphFrom(card, transition);
     const clear = () => {
       if (card) delete card.dataset.morph;
     };
@@ -275,6 +289,9 @@ function useAppState() {
     reducedMotion,
     systemReduced,
     setMotion: (motion: MotionPreference) => update(() => ({ motion })),
+    theme: saved.theme,
+    // A troca de tema esmaece a tela inteira de uma vez (sem cada cor mudar no seu tempo).
+    setTheme: (theme: ThemePreference) => withTransition("theme", () => update(() => ({ theme }))),
   };
 }
 

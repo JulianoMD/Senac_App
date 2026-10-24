@@ -78,8 +78,8 @@ export default function Checklist() {
           <span className="checklist-title">{next ? next.label : "Primeiros passos concluídos"}</span>
           <span className="checklist-sub">
             {next
-              ? `${remaining === 1 ? "Falta 1 passo" : `Faltam ${remaining} passos`} para ganhar R$ 5`
-              : "Seu cupom de R$ 5 já está em Perfil."}
+              ? `${remaining === 1 ? "Falta 1 passo" : `Faltam ${remaining} passos`} para ganhar R$\u00a05`
+              : "Seu cupom de R$\u00a05 já está em Perfil."}
           </span>
         </span>
         {next && <Icon name="arrow" size={18} />}

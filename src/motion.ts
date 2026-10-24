@@ -87,3 +87,11 @@ export function morphCard(foodId: number) {
   if (isReducedMotion()) return null;
   return visibleCardPhoto(foodId)?.closest<HTMLElement>(".food-card") ?? null;
 }
+
+// Diz ao CSS de que formato de card a foto sai: na linha compacta ela tem os quatro cantos arredondados.
+export function markMorphFrom(card: HTMLElement | null, transition: ViewTransition | null) {
+  if (!card || !transition) return;
+  const root = document.documentElement;
+  root.dataset.morphFrom = card.classList.contains("food-row") ? "row" : "card";
+  transition.finished.finally(() => delete root.dataset.morphFrom);
+}

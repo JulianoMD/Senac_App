@@ -9,7 +9,7 @@ import Sheet from "../components/Sheet";
 import { coupons, foodById, tasks, user, welcomeCoupon, type Coupon } from "../data";
 import avatar from "../assets/avatar-marina.png";
 import { isIOS, useInstall } from "../install";
-import { useApp } from "../store";
+import { useApp, type ThemePreference } from "../store";
 
 const LEVEL_START = 10;
 const LEVEL_SIZE = 5;
@@ -42,6 +42,18 @@ function CopyCodeButton({ code }: { code: string }) {
     </button>
   );
 }
+
+const themeOptions: [ThemePreference, string][] = [
+  ["system", "Automático"],
+  ["light", "Claro"],
+  ["dark", "Escuro"],
+];
+
+const themeHint: Record<ThemePreference, string> = {
+  system: "Segue o claro/escuro do celular",
+  light: "Sempre claro",
+  dark: "Sempre escuro, bom para a noite",
+};
 
 export default function Profile() {
   const app = useApp();
@@ -278,6 +290,30 @@ export default function Profile() {
               }}
             />
           </label>
+          <div className="menu-row menu-row--stack">
+            <span className="menu-icon">
+              <Icon name="moon" size={18} />
+            </span>
+            <span>
+              Aparência
+              <small>{themeHint[app.theme]}</small>
+            </span>
+            <fieldset className="segmented">
+              <legend>Aparência</legend>
+              {themeOptions.map(([id, label]) => (
+                <label key={id}>
+                  <input
+                    type="radio"
+                    name="theme"
+                    value={id}
+                    checked={app.theme === id}
+                    onChange={() => app.setTheme(id)}
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </fieldset>
+          </div>
           {!install.installed && (
             <button
               className="menu-row"

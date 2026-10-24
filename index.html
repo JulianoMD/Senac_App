@@ -13,6 +13,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Fila Zero" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <script>
+      // Aplica o tema salvo (ou o do celular) antes da primeira pintura: sem piscar branco no escuro.
+      try {
+        var theme = JSON.parse(localStorage.getItem("fila-zero:state:v1") || "{}").theme || "system";
+        var dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+        if (dark) document.querySelector('meta[name="theme-color"]').setAttribute("content", "#0d1220");
+      } catch (error) {}
+    </script>
     <!-- figma:head-end -->
   </head>
   <body>
