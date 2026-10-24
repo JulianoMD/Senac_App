@@ -665,13 +665,14 @@ svg {
   outline-offset: 3px;
 }
 
+/* Auréola colada na borda da foto, sem vão entre as duas. */
 .category-ring {
   position: absolute;
-  top: -5px;
+  top: -2.5px;
   left: 50%;
-  width: 70px;
-  height: 70px;
-  margin-left: -35px;
+  width: 65px;
+  height: 65px;
+  margin-left: -32.5px;
   border: 2.5px solid var(--accent);
   border-radius: 50%;
   pointer-events: none;
@@ -698,11 +699,14 @@ svg {
   margin-bottom: 12px;
 }
 
+/* O carrossel rola na horizontal e por isso recorta o que passa das bordas: a folga em cima e
+   embaixo (compensada na margem) deixa o card subir no hover e a sombra aparecer sem corte. */
 .carousel {
   display: flex;
   gap: 12px;
   width: 100%;
-  padding: 0 16px 8px;
+  margin: -10px 0 -18px;
+  padding: 10px 16px 26px;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scroll-padding-inline: 16px;
