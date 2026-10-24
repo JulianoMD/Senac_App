@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { brl, discountOf, LOW_STOCK, type Food } from "../data";
+import { brl, distance, LOW_STOCK, type Food } from "../data";
 import { useApp } from "../store";
 import Icon from "./Icon";
 import Photo from "./Photo";
@@ -7,6 +7,7 @@ import PickupCountdown from "./PickupCountdown";
 import StoreMark from "./StoreMark";
 
 // "card": foto grande em cima (destaques do carrossel). "row": foto ao lado, compacta (lista do dia).
+// Nos dois: cantina em cima, prato em negrito, horário de retirada e metros até o pátio, preço.
 export default function FoodCard({ food, layout = "card" }: { food: Food; layout?: "card" | "row" }) {
   const { favorites, toggleFavorite, openFood, stock, hint } = useApp();
   const [burst, setBurst] = useState(0);
@@ -27,7 +28,7 @@ export default function FoodCard({ food, layout = "card" }: { food: Food; layout
       aria-pressed={isFavorite}
       onClick={onFavorite}
     >
-      <Icon name="heart" size={18} />
+      <Icon name="heart" size={20} />
       {burst > 0 && (
         <span className="burst" key={burst} aria-hidden="true">
           <i />
@@ -41,31 +42,30 @@ export default function FoodCard({ food, layout = "card" }: { food: Food; layout
     </button>
   );
 
-  const title = (
-    <h3>
-      <button className="food-open" type="button" onClick={() => openFood(food)}>
-        {food.title}
-      </button>
-    </h3>
+  const heading = (
+    <>
+      <p className="food-place">{food.place}</p>
+      <h3>
+        <button className="food-open" type="button" onClick={() => openFood(food)}>
+          {food.title}
+        </button>
+      </h3>
+    </>
   );
 
-  // Esgotado não tem prazo nem desconto a mostrar: só o aviso e onde fica.
-  const meta = (
-    <p className="food-meta">
-      {soldOut ? <span className="sold-note">Esgotou por hoje</span> : <PickupCountdown food={food} />}
-      <span className="food-spot">· {food.spot}</span>
-    </p>
+  // Até onde ir: metros da entrada até o pátio (o mapa completo está na oferta).
+  const where = (
+    <span className="food-distance">
+      <Icon name="location" size={14} />
+      {distance(food.patio)}
+    </span>
   );
 
   const price = (
-    <div className="food-price">
+    <span className="food-price">
+      {!soldOut && <s>{brl.format(food.original)}</s>}
       <strong>{brl.format(food.price)}</strong>
-      {!soldOut && (
-        <b className="discount" title={`Antes ${brl.format(food.original)}`}>
-          −{discountOf(food)}%
-        </b>
-      )}
-    </div>
+    </span>
   );
 
   if (layout === "row") {
@@ -76,9 +76,16 @@ export default function FoodCard({ food, layout = "card" }: { food: Food; layout
           {soldOut && <span className="stock-badge stock-badge--out">Esgotado</span>}
         </div>
         <div className="food-row-body">
-          <p className="food-row-place">{food.place}</p>
-          {title}
-          {meta}
+          {heading}
+          <p className="food-meta">
+            {soldOut ? (
+              <span className="sold-note">Esgotou por hoje</span>
+            ) : (
+              <PickupCountdown food={food} label={food.pickup} />
+            )}
+            <span className="food-sep" aria-hidden="true" />
+            {where}
+          </p>
           {price}
         </div>
         {save}
@@ -95,18 +102,28 @@ export default function FoodCard({ food, layout = "card" }: { food: Food; layout
         ) : left <= LOW_STOCK ? (
           <span className="stock-badge">{left === 1 ? "Última unidade" : `Restam ${left}`}</span>
         ) : null}
-        {save}
+        <span className="rating-chip" role="img" aria-label={`Nota ${food.rating} de 5`}>
+          <Icon name="star" size={13} />
+          {food.rating}
+        </span>
         <span className="food-store">
           <StoreMark food={food} />
-          {food.place}
         </span>
       </div>
       <div className="food-body">
-        <div className="food-main">
-          {title}
-          {meta}
+        <div className="food-head">
+          <div className="food-main">{heading}</div>
+          {save}
         </div>
-        {price}
+        <p className="food-meta">
+          {soldOut ? <span className="sold-note">Esgotou por hoje</span> : <span>Retire hoje {food.pickup}</span>}
+          <span className="food-sep" aria-hidden="true" />
+          {where}
+        </p>
+        <div className="food-foot">
+          {soldOut ? <span className="sold-note">Volta amanhã</span> : <PickupCountdown food={food} />}
+          {price}
+        </div>
       </div>
     </article>
   );

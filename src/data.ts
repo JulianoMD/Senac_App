@@ -1,3 +1,7 @@
+// Fotos de domínio público (Wikimedia Commons), guardadas no próprio app.
+import coxinha from "./assets/photos/coxinha.jpg";
+import donut from "./assets/photos/donut.jpg";
+
 export const user = {
   name: "Marina Alves",
   firstName: "Marina",
@@ -17,16 +21,31 @@ export type Food = {
   pickup: string;
   pickupStart: number;
   pickupEnd: number;
+  /** Pátio onde a retirada acontece (só existem três no campus). */
+  patio: Patio;
+  /** Nome do pátio, ex.: "Pátio 1". */
   spot: string;
-  walk: string;
   category: string;
   stock: number;
 };
 
+// Os três pátios do campus — os únicos pontos de retirada. Distância e tempo a pé contados
+// da entrada principal; x/y é a posição no mapa do campus (viewBox 320×180).
+export type Patio = { id: 1 | 2 | 3; name: string; meters: number; minutes: number; x: number; y: number };
+
+export const patios: Record<Patio["id"], Patio> = {
+  1: { id: 1, name: "Pátio 1", meters: 120, minutes: 2, x: 110, y: 121 },
+  2: { id: 2, name: "Pátio 2", meters: 260, minutes: 4, x: 150, y: 60 },
+  3: { id: 3, name: "Pátio 3", meters: 410, minutes: 6, x: 250, y: 50 },
+};
+
+export const distance = (patio: Patio) => `${patio.meters} m`;
+
 const photo = (id: string, width = 900) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`;
 
-type FoodSeed = Omit<Food, "pickup" | "pickupStart" | "pickupEnd"> & {
+type FoodSeed = Omit<Food, "pickup" | "pickupStart" | "pickupEnd" | "patio" | "spot"> & {
+  patio: Patio["id"];
   /** Abertura e fechamento da retirada, em minutos a partir de agora. */
   window: [number, number];
 };
@@ -36,14 +55,13 @@ const seeds: FoodSeed[] = [
     id: 1,
     title: "Prato executivo",
     place: "Bistrô Escola Senac",
-    note: "Arroz, feijão, proteína do dia e salada. Preparado hoje no almoço.",
-    image: photo("photo-1707274860723-52233290a977"),
+    note: "Arroz integral, proteína do dia, vagem e tomatinhos. Preparado hoje no almoço.",
+    image: photo("photo-1547592180-85f173990554"),
     rating: "4,9",
     original: 32,
     price: 16.9,
     window: [-25, 65],
-    spot: "Pátio 1",
-    walk: "2 min",
+    patio: 1,
     category: "Pratos",
     stock: 3,
   },
@@ -51,14 +69,13 @@ const seeds: FoodSeed[] = [
     id: 2,
     title: "Bowl vegetariano",
     place: "Cantina Central",
-    note: "Grãos, legumes assados e molho da casa. Montado hoje cedo.",
-    image: photo("photo-1626266799523-941311ea2273"),
+    note: "Tofu grelhado, ovos, milho, tomate e folhas. Montado hoje cedo.",
+    image: photo("photo-1546069901-ba9599a7e63c"),
     rating: "4,8",
     original: 28,
     price: 14,
     window: [-70, 25],
-    spot: "Pátio 2",
-    walk: "4 min",
+    patio: 2,
     category: "Pratos",
     stock: 6,
   },
@@ -66,14 +83,13 @@ const seeds: FoodSeed[] = [
     id: 3,
     title: "Sanduíche natural",
     place: "Café Biblioteca",
-    note: "Pão integral, frango desfiado, cenoura e requeijão. Feito pela manhã.",
-    image: photo("photo-1496113269490-84ffe1a410cb"),
+    note: "Pão integral, peito de peru, queijo, tomate e alface. Feito pela manhã.",
+    image: photo("photo-1553909489-cd47e0907980"),
     rating: "4,7",
     original: 18,
     price: 8.9,
     window: [-10, 95],
-    spot: "Pátio 1",
-    walk: "1 min",
+    patio: 1,
     category: "Lanches",
     stock: 8,
   },
@@ -81,14 +97,13 @@ const seeds: FoodSeed[] = [
     id: 4,
     title: "Combo de salgados",
     place: "Cantina do Pátio",
-    note: "Quatro salgados assados sortidos, todos da fornada de hoje.",
-    image: photo("photo-1567234669013-216f3a40e02e"),
+    note: "Quatro coxinhas de frango, todas da fornada de hoje.",
+    image: coxinha,
     rating: "4,6",
     original: 20,
     price: 9.9,
     window: [20, 110],
-    spot: "Pátio 2",
-    walk: "3 min",
+    patio: 2,
     category: "Salgados",
     stock: 2,
   },
@@ -97,13 +112,12 @@ const seeds: FoodSeed[] = [
     title: "Wrap de frango + suco",
     place: "Espaço Gourmet",
     note: "Wrap de frango grelhado com suco natural de 300 ml.",
-    image: photo("photo-1635352768520-1d33dc341a21"),
+    image: photo("photo-1626700051175-6818013e1d4f"),
     rating: "4,9",
     original: 26,
     price: 12.9,
     window: [-40, 50],
-    spot: "Pátio 3",
-    walk: "5 min",
+    patio: 3,
     category: "Lanches",
     stock: 5,
   },
@@ -111,14 +125,13 @@ const seeds: FoodSeed[] = [
     id: 6,
     title: "Caixa surpresa doce",
     place: "Doce Intervalo",
-    note: "Seleção surpresa de doces e fatias de bolo que sobraram do dia.",
-    image: photo("photo-1596698185611-31d8a250f164"),
+    note: "Seleção surpresa de donuts e doces que sobraram do dia.",
+    image: photo("photo-1514517220017-8ce97a34a7b6"),
     rating: "4,5",
     original: 24,
     price: 10.9,
     window: [45, 120],
-    spot: "Pátio 3",
-    walk: "6 min",
+    patio: 3,
     category: "Doces",
     stock: 1,
   },
@@ -138,10 +151,17 @@ const clock = (time: number) =>
 // "à 00:30" / "à 01:00", mas "às 22:30".
 export const atClock = (time: number) => `${new Date(time).getHours() <= 1 ? "à" : "às"} ${clock(time)}`;
 
-export const foods: Food[] = seeds.map(({ window: [opens, closes], ...food }) => {
+export const foods: Food[] = seeds.map(({ window: [opens, closes], patio, ...food }) => {
   const pickupStart = atMinutesFromNow(opens);
   const pickupEnd = atMinutesFromNow(closes);
-  return { ...food, pickupStart, pickupEnd, pickup: `${clock(pickupStart)}–${clock(pickupEnd)}` };
+  return {
+    ...food,
+    patio: patios[patio],
+    spot: patios[patio].name,
+    pickupStart,
+    pickupEnd,
+    pickup: `${clock(pickupStart)}–${clock(pickupEnd)}`,
+  };
 });
 
 export type PickupStatus = { phase: "soon" | "open" | "closed"; label: string; remaining: number };
@@ -183,10 +203,10 @@ export const LOW_STOCK = 3;
 
 export const categories = [
   { id: "Todos", image: "" },
-  { id: "Pratos", image: photo("photo-1707274860723-52233290a977", 240) },
-  { id: "Lanches", image: photo("photo-1496113269490-84ffe1a410cb", 240) },
-  { id: "Salgados", image: photo("photo-1567234669013-216f3a40e02e", 240) },
-  { id: "Doces", image: photo("photo-1596698185611-31d8a250f164", 240) },
+  { id: "Pratos", image: photo("photo-1546069901-ba9599a7e63c", 240) },
+  { id: "Lanches", image: photo("photo-1553909489-cd47e0907980", 240) },
+  { id: "Salgados", image: coxinha },
+  { id: "Doces", image: donut },
 ];
 
 export const searchSuggestions = ["vegetariano", "salgado", "doce", "sanduíche"];

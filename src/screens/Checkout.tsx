@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
+import CampusMap from "../components/CampusMap";
 import Confetti from "../components/Confetti";
 import Icon, { type IconName } from "../components/Icon";
 import Photo from "../components/Photo";
 import PickupCountdown from "../components/PickupCountdown";
 import PickupTicket from "../components/PickupTicket";
 import StoreMark from "../components/StoreMark";
-import { brl, discountOf, paymentMethods, pickupStatus, type Food, type Order } from "../data";
+import { brl, discountOf, distance, paymentMethods, pickupStatus, type Food, type Order } from "../data";
 import { withTransition } from "../motion";
 import { useNow } from "../time";
 import { useApp } from "../store";
@@ -219,17 +220,23 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
           </li>
           <li>
             <span className="fact-icon tone-blue">
-              <Icon name="location" size={18} />
-            </span>
-            {food.spot}, {food.walk} a pé
-          </li>
-          <li>
-            <span className="fact-icon tone-blue">
               <Icon name="leaf" size={18} />
             </span>
             Feito hoje. Preço reduzido para não ir para o lixo.
           </li>
         </ul>
+
+        {/* Onde retirar: mapa do campus com a rota da entrada até o pátio. */}
+        <figure className="campus-map">
+          <CampusMap patio={food.patio} />
+          <figcaption>
+            <Icon name="location" size={16} />
+            <span>
+              <strong>{food.spot}</strong> · {distance(food.patio)} · {food.patio.minutes} min a pé
+              <small>Saindo da entrada principal do campus</small>
+            </span>
+          </figcaption>
+        </figure>
       </div>
       <div className="sheet-footer">
         <div className="footer-price">

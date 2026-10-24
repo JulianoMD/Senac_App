@@ -588,8 +588,8 @@ svg {
   display: flex;
   gap: 12px;
   width: 100%;
-  margin-top: 14px;
-  padding: 0 16px 4px;
+  margin-top: 10px;
+  padding: 6px 16px 4px;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scrollbar-width: none;
@@ -622,13 +622,10 @@ svg {
   overflow: hidden;
   color: var(--brand);
   background: var(--brand-soft);
-  border: 3px solid var(--surface);
   border-radius: 50%;
   box-shadow: 0 0 0 1px var(--line);
   place-items: center;
-  transition:
-    border-color 200ms ease,
-    transform 200ms var(--ease-out);
+  transition: box-shadow 200ms ease;
 }
 
 .category-media img {
@@ -638,7 +635,7 @@ svg {
 }
 
 .category:hover .category-media {
-  transform: translateY(-2px);
+  box-shadow: 0 0 0 2px var(--brand-mid);
 }
 
 .category.is-active {
@@ -658,14 +655,24 @@ svg {
   box-shadow: none;
 }
 
+/* Foco pelo teclado: um anel redondo em volta da foto (não um retângulo em volta do botão). */
+.category:focus-visible {
+  outline: 0;
+}
+
+.category:focus-visible .category-media {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
 .category-ring {
   position: absolute;
-  top: 0;
+  top: -5px;
   left: 50%;
-  width: 60px;
-  height: 60px;
-  margin-left: -30px;
-  border: 3px solid var(--accent);
+  width: 70px;
+  height: 70px;
+  margin-left: -35px;
+  border: 2.5px solid var(--accent);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -743,10 +750,6 @@ svg {
   border-radius: 14px;
 }
 
-.food-row .food-media::after {
-  display: none;
-}
-
 .food-row .stock-badge {
   top: auto;
   bottom: 6px;
@@ -759,16 +762,6 @@ svg {
   flex: 1;
   min-width: 0;
   padding-right: 34px;
-}
-
-.food-row-place {
-  margin: 0;
-  overflow: hidden;
-  color: var(--text-2);
-  font-size: 12.5px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .food-row h3 {
@@ -789,9 +782,6 @@ svg {
 }
 
 .food-row .food-price {
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
   margin-top: 6px;
 }
 
@@ -800,11 +790,12 @@ svg {
 }
 
 .food-row .save-button {
-  top: 10px;
-  right: 10px;
-  width: 34px;
-  height: 34px;
-  background: var(--bg);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  margin: 0;
 }
 
 /* Card de oferta */
@@ -835,18 +826,6 @@ svg {
   height: 100%;
   object-fit: cover;
   transition: transform 600ms var(--ease-out);
-}
-
-.food-card:hover .food-media > img {
-  transform: scale(1.04);
-}
-
-.food-media::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  background: linear-gradient(0deg, rgb(12 20 40 / 66%) 0%, rgb(12 20 40 / 0%) 55%);
-  pointer-events: none;
 }
 
 .is-sold-out .food-media > img {
@@ -882,7 +861,7 @@ svg {
 
 .stock-badge--out {
   color: #ffffff;
-  background: var(--ink);
+  background: #121a2d;
 }
 
 .stock-badge--out::before {
@@ -890,20 +869,42 @@ svg {
 }
 
 .save-button {
-  position: absolute;
+  position: relative;
   z-index: 3;
-  top: 10px;
-  right: 10px;
   display: grid;
-  width: 38px;
-  height: 38px;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin: -4px -8px 0 0;
   padding: 0;
   color: var(--ink);
-  background: var(--surface);
+  background: transparent;
   border: 0;
   border-radius: 50%;
   place-items: center;
   transition: transform 160ms ease;
+}
+
+/* Nota da cantina no canto da foto, como na referência. */
+.rating-chip {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 6px 10px 6px 8px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  background: var(--surface);
+  border-radius: 999px;
+}
+
+.rating-chip svg {
+  color: var(--accent);
+  fill: currentcolor;
 }
 
 .save-button:active {
@@ -926,17 +927,8 @@ svg {
 .food-store {
   position: absolute;
   z-index: 1;
-  right: 56px;
   bottom: 12px;
   left: 12px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  overflow: hidden;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  white-space: nowrap;
   pointer-events: none;
 }
 
@@ -952,10 +944,27 @@ svg {
 }
 
 .store-mark--md {
-  width: 34px;
-  height: 34px;
-  font-size: 11.5px;
-  border: 2px solid #ffffff;
+  position: relative;
+  width: 54px;
+  height: 54px;
+  color: var(--brand-deep);
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  background: #ffffff;
+  box-shadow: 0 6px 16px -6px rgb(0 0 0 / 40%);
+}
+
+/* Logo da cantina: monograma com o traço laranja embaixo, como um selo. */
+.store-mark--md::after {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  width: 18px;
+  height: 3px;
+  margin-left: -9px;
+  content: "";
+  background: var(--accent);
+  border-radius: 2px;
 }
 
 .store-mark--sm {
@@ -965,15 +974,28 @@ svg {
 }
 
 .food-body {
+  padding: 12px 16px 14px;
+}
+
+.food-head {
   display: flex;
-  gap: 12px;
-  align-items: flex-end;
+  gap: 8px;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 13px 16px 15px;
 }
 
 .food-main {
   min-width: 0;
+}
+
+.food-place {
+  margin: 0 0 1px;
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .food-main h3 {
@@ -1016,12 +1038,83 @@ svg {
 .food-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 5px;
+  gap: 2px 8px;
   align-items: center;
-  margin: 2px 0 0;
+  margin: 6px 0 0;
   color: var(--text-2);
   font-size: 13px;
   white-space: nowrap;
+}
+
+.food-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--line);
+}
+
+/* Onde não cabe numa linha (telas bem estreitas), horário e distância empilham — sem a barra
+   sobrando no fim da linha. */
+.food-body {
+  container: card-body / inline-size;
+}
+
+.food-row-body {
+  container: row-body / inline-size;
+}
+
+@container card-body (max-width: 215px) {
+  .food-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .food-sep {
+    display: none;
+  }
+}
+
+@container row-body (max-width: 165px) {
+  .food-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .food-sep {
+    display: none;
+  }
+}
+
+.food-distance {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.food-distance svg {
+  color: var(--muted);
+}
+
+/* Rodapé do card: linha tracejada de ponta a ponta, prazo à esquerda e preço à direita. */
+.food-foot {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px -16px 0;
+  padding: 11px 16px 0;
+  border-top: 1.5px dashed var(--line);
+}
+
+/* No card grande o preço antigo fica em cima do novo: prazo e preço cabem lado a lado. */
+.food-foot .food-price {
+  flex-direction: column;
+  gap: 0;
+  align-items: flex-end;
+  line-height: 1.15;
+}
+
+.food-foot .food-price strong {
+  font-size: 19px;
 }
 
 .food-meta svg {
@@ -1032,9 +1125,8 @@ svg {
 .food-price {
   display: flex;
   flex: none;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  gap: 8px;
+  align-items: baseline;
 }
 
 .food-price strong {
@@ -3618,15 +3710,21 @@ html[data-vt="tab-back"]::view-transition-new(root) {
   view-transition-name: card-store;
 }
 
+[data-morph] .rating-chip {
+  view-transition-name: card-rating;
+}
+
 html[data-vt="sheet"]::view-transition-old(card-badge),
 html[data-vt="sheet"]::view-transition-old(card-save),
-html[data-vt="sheet"]::view-transition-old(card-store) {
+html[data-vt="sheet"]::view-transition-old(card-store),
+html[data-vt="sheet"]::view-transition-old(card-rating) {
   animation: fade-out 100ms ease both;
 }
 
 html[data-vt="sheet-back"]::view-transition-new(card-badge),
 html[data-vt="sheet-back"]::view-transition-new(card-save),
-html[data-vt="sheet-back"]::view-transition-new(card-store) {
+html[data-vt="sheet-back"]::view-transition-new(card-store),
+html[data-vt="sheet-back"]::view-transition-new(card-rating) {
   animation: fade-in 200ms ease 360ms both;
 }
 
@@ -3757,9 +3855,6 @@ html[data-vt="step"]::view-transition-new(offer-card) {
       0 20px 30px -16px rgb(11 46 99 / 30%);
   }
 
-  .category:hover .category-media {
-    transform: translateY(-2px);
-  }
 }
 
 .active-order:focus-visible,
@@ -4721,6 +4816,156 @@ html[data-motion="reduced"] .medal.is-flipped .medal-back {
 .sold-note {
   color: var(--text-2);
   font-weight: 600;
+}
+
+/* Mapa do campus na oferta: três pátios, calçadas e a rota pontilhada da entrada até o pátio. */
+.campus-map {
+  margin: 16px 0 0;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.campus-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--font-sans);
+}
+
+.map-ground {
+  fill: var(--bg-deep);
+}
+
+.map-walk {
+  fill: none;
+  stroke: var(--surface);
+  stroke-linecap: round;
+  stroke-width: 9;
+}
+
+.map-building {
+  fill: var(--bg);
+  stroke: var(--line);
+}
+
+.map-building-label {
+  fill: var(--muted);
+  font-size: 7.5px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.map-patio rect {
+  fill: var(--brand-soft);
+  stroke: var(--brand-mid);
+  stroke-dasharray: 3 3;
+}
+
+.map-patio text {
+  fill: var(--brand);
+  font-size: 8.5px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.map-patio.is-target rect {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-dasharray: none;
+  stroke-width: 1.5;
+}
+
+.map-patio.is-target text {
+  fill: var(--accent-ink);
+  font-weight: 800;
+}
+
+.map-route {
+  fill: none;
+  stroke: var(--brand);
+  stroke-dasharray: 0.1 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+  animation: map-walk 1.2s linear infinite;
+}
+
+.map-pin path {
+  fill: var(--accent);
+}
+
+.map-pin circle {
+  fill: #ffffff;
+}
+
+.map-you circle {
+  fill: var(--brand);
+}
+
+.map-you .map-you-halo {
+  opacity: 0.25;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-pulse 1.8s ease-out infinite;
+}
+
+.map-you text,
+.map-distance {
+  fill: var(--ink);
+  font-size: 8.5px;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: var(--bg-deep);
+  stroke-width: 3px;
+}
+
+.map-distance {
+  fill: var(--accent-ink);
+  text-anchor: middle;
+}
+
+.campus-map figcaption {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.campus-map figcaption svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+.campus-map figcaption small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+@keyframes map-walk {
+  to {
+    stroke-dashoffset: -7.1;
+  }
+}
+
+@keyframes map-pulse {
+  from {
+    transform: scale(0.6);
+    opacity: 0.45;
+  }
+  to {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+html[data-motion="reduced"] :is(.map-route, .map-you-halo) {
+  animation: none;
 }
 
 .fact-text {
