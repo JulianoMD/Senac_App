@@ -13,7 +13,7 @@
   --surface: #ffffff;
   --ink: #121a2d;
   --text-2: #566074;
-  --muted: #8a90a0;
+  --muted: #646b7c;
   --line: #ece6dc;
 
   --brand: #1450a3;
@@ -24,8 +24,11 @@
   --accent-ink: #a34b00;
   --accent-soft: #fff0de;
   --success: #1f8a5b;
+  --success-ink: #17704a;
   --success-soft: #e3f3eb;
   --danger: #c8432e;
+  --danger-ink: #a8331f;
+  --danger-soft: #fbeae6;
 
   --blue: var(--brand);
   --blue-deep: var(--brand-deep);
@@ -40,7 +43,7 @@
   --tomato-ink: var(--accent-ink);
   --tomato-soft: var(--accent-soft);
   --mint: var(--success);
-  --mint-ink: var(--success);
+  --mint-ink: var(--success-ink);
   --mint-soft: var(--success-soft);
   --berry: var(--brand);
   --berry-ink: var(--brand-deep);
@@ -90,6 +93,21 @@ body,
 
 body {
   min-width: 0;
+}
+
+/* Com um painel aberto, a tela de trás fica parada: no iPhone, o deslizar no fim do painel
+   não "vaza" e arrasta o feed por baixo. */
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+/* Onde a barra de rolagem ocupa espaço (Windows, Mac com mouse), travar a tela não empurra o app. */
+html {
+  scrollbar-gutter: stable;
+}
+
+dialog :is(.item-sheet, .ticket-sheet, .counter, .onboarding) {
+  overscroll-behavior: contain;
 }
 
 button,
@@ -267,20 +285,21 @@ svg {
 
 .active-order-text strong,
 .active-order-text span {
-  display: block;
+  display: -webkit-box;
   overflow: hidden;
   color: rgb(255 255 255 / 72%);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .active-order-text strong {
+  color: #ffffff;
   font-size: 14.5px;
 }
 
 .active-order-text span {
   margin-top: 1px;
-  color: var(--text-2);
   font-size: 13px;
 }
 
@@ -343,12 +362,14 @@ svg {
 }
 
 .checklist-title {
+  display: -webkit-box;
   overflow: hidden;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .checklist-sub {
@@ -717,6 +738,7 @@ svg {
 }
 
 .stock-badge--out {
+  color: #ffffff;
   background: var(--ink);
 }
 
@@ -812,13 +834,15 @@ svg {
 }
 
 .food-main h3 {
+  display: -webkit-box;
   margin: 0 0 4px;
   overflow: hidden;
   font-size: 16.5px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .food-open {
@@ -848,7 +872,8 @@ svg {
 
 .food-meta {
   display: flex;
-  gap: 5px;
+  flex-wrap: wrap;
+  gap: 0 5px;
   align-items: center;
   margin: 2px 0 0;
   color: var(--text-2);
@@ -1040,14 +1065,37 @@ svg {
   animation: blink 1.4s ease-in-out infinite;
 }
 
+/* Antes de abrir a retirada o pedido está só separado (azul, sem piscar); depois de fechar, encerrado. */
+.status--soon {
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.status--soon::before {
+  background: var(--brand);
+  animation: none;
+}
+
+.status--closed {
+  color: var(--danger-ink);
+  background: var(--danger-soft);
+}
+
+.status--closed::before {
+  background: var(--danger);
+  animation: none;
+}
+
 .strip-title {
+  display: -webkit-box;
   margin-top: 8px;
   overflow: hidden;
   font-size: 16px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .strip-category {
@@ -1067,6 +1115,10 @@ svg {
 }
 
 .strip-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 5px;
+  align-items: center;
   margin-top: 4px;
   color: var(--text-2);
   font-size: 13px;
@@ -1542,6 +1594,11 @@ svg {
   appearance: none;
 }
 
+.switch:checked {
+  background-color: var(--brand);
+  background-position: 20px 0;
+}
+
 /* Botões */
 
 .primary-button {
@@ -1734,6 +1791,11 @@ svg {
   height: 100%;
   max-height: 100dvh;
   border-radius: 0;
+}
+
+/* Nada é espremido para caber na altura da tela (o ticket cortava embaixo): a página rola. */
+.page :is(.item-sheet, .ticket-sheet) > * {
+  flex-shrink: 0;
 }
 
 .page .item-hero {
@@ -2018,12 +2080,16 @@ svg {
 
 .order-summary strong {
   font-size: 15px;
+  line-height: 1.25;
+  white-space: normal;
 }
 
 .order-summary span {
   margin-top: 2px;
   color: var(--text-2);
   font-size: 13px;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .order-summary b {
@@ -2444,6 +2510,24 @@ svg {
   margin-left: 0;
 }
 
+.status-steps li.is-pending {
+  color: var(--muted);
+}
+
+.status-steps li.is-pending::before,
+.status-steps li.is-pending::after {
+  background: #d9d3ca;
+}
+
+.status-steps li.is-closed {
+  color: var(--danger-ink);
+  background: var(--danger-soft);
+}
+
+.status-steps li.is-closed::after {
+  background: var(--danger);
+}
+
 .ticket-item {
   display: flex;
   gap: 12px;
@@ -2739,6 +2823,7 @@ svg {
 }
 
 .dots button {
+  position: relative;
   width: 8px;
   height: 8px;
   padding: 0;
@@ -2753,6 +2838,12 @@ svg {
 .dots button.is-active {
   width: 26px;
   background: var(--tone);
+}
+
+.dots button::after {
+  position: absolute;
+  inset: -14px -3px;
+  content: "";
 }
 
 .onboarding-panel h2 {
@@ -3519,7 +3610,7 @@ html.booted :is(.discover-page, .inside-page) > * {
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  color: #ffffff;
+  color: #241300;
   font-size: 10.5px;
   font-style: normal;
   font-weight: 800;
@@ -4388,9 +4479,7 @@ html[data-motion="reduced"] .medal.is-flipped .medal-back {
 }
 
 .food-spot {
-  overflow: hidden;
   color: var(--muted);
-  text-overflow: ellipsis;
 }
 
 .fact-text {

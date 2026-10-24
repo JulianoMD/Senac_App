@@ -12,17 +12,24 @@ import {
   greeting,
   LOW_STOCK,
   normalize,
+  orderStage,
+  pickupStatus,
   searchSuggestions,
   user,
+  type Food,
 } from "../data";
 import { withTransition } from "../motion";
 import { useApp } from "../store";
+import { useNow } from "../time";
 
 function ActiveOrderBanner() {
   const { activeOrders: orders, openOrder } = useApp();
-  const order = orders[0];
+  const now = useNow();
+  // Mostra primeiro o pedido que já dá para retirar.
+  const order = orders.find((item) => orderStage(foodById(item.foodId), now).phase === "open") ?? orders[0];
   if (!order) return null;
   const food = foodById(order.foodId);
+  const stage = orderStage(food, now);
 
   return (
     <button className="active-order halo" type="button" onClick={() => openOrder(order.id)}>
@@ -31,10 +38,11 @@ function ActiveOrderBanner() {
       </span>
       <span className="active-order-text">
         <strong>
-          Pedido pronto{orders.length > 1 && ` (+${orders.length - 1})`}
+          {stage.title}
+          {orders.length > 1 && ` (+${orders.length - 1})`}
         </strong>
         <span>
-          {order.code} · {food.title}
+          {order.code} · {stage.phase === "soon" ? stage.detail : food.title}
         </span>
       </span>
       <span className="active-order-cta">Ver código</span>
@@ -50,6 +58,7 @@ let offersReady = false;
 
 export default function Discover() {
   const { stock } = useApp();
+  const now = useNow();
   const [category, setCategory] = useState("Todos");
   const [loading, setLoading] = useState(!offersReady);
 
@@ -84,9 +93,14 @@ export default function Discover() {
       (category === "Todos" || food.category === category) &&
       normalize(`${food.title} ${food.place} ${food.category}`).includes(query),
   );
-  const isLow = (id: number, fallback: number) => (stock[id] ?? fallback) <= LOW_STOCK;
-  const endingSoon = filtered.filter((food) => isLow(food.id, food.stock));
-  const others = filtered.filter((food) => !isLow(food.id, food.stock));
+  const left = (food: Food) => stock[food.id] ?? food.stock;
+  const available = (food: Food) => left(food) > 0 && pickupStatus(food, now).phase !== "closed";
+  const endingSoon = filtered.filter((food) => available(food) && left(food) <= LOW_STOCK);
+  // Esgotados e com retirada encerrada vão para o fim: primeiro aparece o que ainda dá para pegar.
+  const others = [
+    ...filtered.filter((food) => available(food) && left(food) > LOW_STOCK),
+    ...filtered.filter((food) => !available(food)),
+  ];
 
   function clearFilters() {
     setSearch("");

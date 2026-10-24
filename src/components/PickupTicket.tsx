@@ -1,4 +1,5 @@
-import { foodById, user, type Order } from "../data";
+import { foodById, orderStage, user, type Order } from "../data";
+import { useNow } from "../time";
 import Barcode from "./Barcode";
 import PickupCountdown from "./PickupCountdown";
 
@@ -14,6 +15,7 @@ export default function PickupTicket({
   onCodeClick?: () => void;
 }) {
   const food = foodById(order.foodId);
+  const stage = orderStage(food, useNow());
   const showStub = !order.collected || torn;
 
   const ticket = (
@@ -36,8 +38,12 @@ export default function PickupTicket({
         ) : (
           <ol className="status-steps" aria-label="Situação do pedido">
             <li className="is-done">Pago</li>
-            <li className="is-done">Separado</li>
-            <li className="is-current">Pronto para retirar</li>
+            <li className={stage.phase === "soon" ? "is-current" : "is-done"}>Separado</li>
+            {stage.phase === "closed" ? (
+              <li className="is-current is-closed">Retirada encerrada</li>
+            ) : (
+              <li className={stage.phase === "open" ? "is-current" : "is-pending"}>Pronto para retirar</li>
+            )}
           </ol>
         )}
         <div className="ticket-band">

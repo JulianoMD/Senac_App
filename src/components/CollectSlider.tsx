@@ -4,7 +4,7 @@ import Icon from "./Icon";
 const PADDING = 6;
 
 // "Deslize para retirar": gesto feito na frente do atendente, difícil de disparar sem querer.
-// No teclado, Enter ou Espaço confirmam.
+// No teclado (Enter ou Espaço) e nos leitores de tela, ativar o botão confirma.
 export default function CollectSlider({ onComplete }: { onComplete: () => void }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLButtonElement>(null);
@@ -70,11 +70,10 @@ export default function CollectSlider({ onComplete }: { onComplete: () => void }
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        onKeyDown={(event) => {
-          if (!done && (event.key === "Enter" || event.key === " ")) {
-            event.preventDefault();
-            finish();
-          }
+        // Enter, Espaço e leitores de tela geram um clique sem ponteiro (detail 0); um toque
+        // rápido com o dedo não confirma — só o gesto de deslizar.
+        onClick={(event) => {
+          if (!done && event.detail === 0) finish();
         }}
       >
         <Icon name={done ? "check" : "arrow"} size={22} />

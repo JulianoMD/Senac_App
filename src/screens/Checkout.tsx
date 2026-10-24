@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Confetti from "../components/Confetti";
 import Icon, { type IconName } from "../components/Icon";
 import Photo from "../components/Photo";
@@ -41,14 +41,19 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
     });
   const [method, setMethod] = useState(paymentMethods[0].id);
   const [paying, setPaying] = useState(false);
+  const payingRef = useRef(false);
   const [order, setOrder] = useState<Order | null>(null);
 
   const left = app.stock[food.id] ?? food.stock;
   // Depois do horário de retirada não dá para reservar (prevenção de erro).
-  const closed = pickupStatus(food, useNow()).phase === "closed";
+  const phase = pickupStatus(food, useNow()).phase;
+  const closed = phase === "closed";
   const existing = app.activeOrders.find((item) => item.foodId === food.id);
 
+  // Um toque só: um segundo toque rápido no "Pagar" não gera outra cobrança.
   function pay() {
+    if (payingRef.current || left === 0 || closed) return;
+    payingRef.current = true;
     setPaying(true);
     window.setTimeout(() => {
       const paidWith = paymentMethods.find((item) => item.id === method)?.short ?? "Pix";
@@ -141,14 +146,16 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
 
         <p className="pay-note">
           <Icon name="info" size={18} />
-          Você pode cancelar até o início do horário de retirada e o valor volta pela mesma forma de pagamento.
+          {phase === "open"
+            ? "A retirada já está aberta: depois de pagar, a reserva não pode mais ser cancelada."
+            : "Você pode cancelar até o início do horário de retirada e o valor volta pela mesma forma de pagamento."}
         </p>
 
         <div className="sheet-footer">
           <button
             className="primary-button primary-button--wide"
             type="button"
-            disabled={paying}
+            disabled={paying || left === 0 || closed}
             aria-busy={paying}
             onClick={pay}
           >
@@ -157,6 +164,10 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
                 <span className="spinner" aria-hidden="true" />
                 Confirmando pagamento…
               </>
+            ) : left === 0 ? (
+              "Esgotou enquanto você escolhia"
+            ) : closed ? (
+              "Retirada encerrada"
             ) : (
               `Pagar ${brl.format(food.price)}`
             )}

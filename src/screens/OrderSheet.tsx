@@ -4,9 +4,10 @@ import CounterView from "../components/CounterView";
 import Icon from "../components/Icon";
 import PickupTicket from "../components/PickupTicket";
 import Sheet from "../components/Sheet";
-import { brl, foodById, user, type Order } from "../data";
+import { atClock, brl, foodById, orderStage, user, type Order } from "../data";
 import { canTransition, withTransition } from "../motion";
 import { useApp } from "../store";
+import { useNow } from "../time";
 
 // Código de retirada: abre o modo balcão para o atendente ler e confirmar,
 // ou cancela com confirmação (prevenção de erros).
@@ -17,6 +18,8 @@ export default function OrderSheet({ order, close }: { order: Order; close: () =
   const [counterOpen, setCounterOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const food = foodById(order.foodId);
+  const phase = orderStage(food, useNow()).phase;
+  const closed = phase === "closed";
 
   function collect() {
     setCelebrating(true);
@@ -75,12 +78,18 @@ export default function OrderSheet({ order, close }: { order: Order; close: () =
             <Icon name="expand" size={18} />
             Mostrar no balcão
           </button>
-          <p className="collect-help">Abre o código em tela cheia para o atendente ler e confirmar.</p>
+          <p className="collect-help">
+            {closed
+              ? `A retirada encerrou ${atClock(food.pickupEnd)}. Mostre o código no balcão de ${food.place} para combinar a entrega.`
+              : "Abre o código em tela cheia para o atendente ler e confirmar."}
+          </p>
         </>
       )}
 
+      {/* Cancelamento só até a retirada abrir: a partir daí a cantina já separou a comida. */}
       {!order.collected &&
         !celebrating &&
+        phase === "soon" &&
         (confirming ? (
           <div className="confirm" role="alertdialog" aria-label="Confirmar cancelamento">
             <p>
@@ -101,6 +110,10 @@ export default function OrderSheet({ order, close }: { order: Order; close: () =
             Cancelar reserva
           </button>
         ))}
+
+      {!order.collected && !celebrating && phase === "open" && (
+        <p className="collect-help">A retirada já começou, então esta reserva não pode mais ser cancelada.</p>
+      )}
 
       {order.collected && !celebrating && (
         <p className="collect-help">Obrigado por salvar essa refeição do lixo.</p>

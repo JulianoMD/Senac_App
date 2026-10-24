@@ -135,6 +135,9 @@ function atMinutesFromNow(minutes: number) {
 const clock = (time: number) =>
   new Date(time).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
+// "à 00:30" / "à 01:00", mas "às 22:30".
+export const atClock = (time: number) => `${new Date(time).getHours() <= 1 ? "à" : "às"} ${clock(time)}`;
+
 export const foods: Food[] = seeds.map(({ window: [opens, closes], ...food }) => {
   const pickupStart = atMinutesFromNow(opens);
   const pickupEnd = atMinutesFromNow(closes);
@@ -161,7 +164,17 @@ export function pickupStatus(food: Food, now: number): PickupStatus {
     const left = food.pickupEnd - now;
     return { phase: "open", label: left < 60_000 ? "Fecha em instantes" : `Fecha em ${duration(left)}`, remaining };
   }
-  return { phase: "closed", label: "Retirada encerrada", remaining: 0 };
+  return { phase: "closed", label: `Encerrou ${atClock(food.pickupEnd)}`, remaining: 0 };
+}
+
+// Etapa de um pedido pago, conforme a janela de retirada: separado (ainda não abriu), pronto ou encerrado.
+export function orderStage(food: Food, now: number) {
+  const { phase } = pickupStatus(food, now);
+  if (phase === "soon") {
+    return { phase, title: "Pedido separado", label: "Separado", detail: `Retire a partir de ${clock(food.pickupStart)}` };
+  }
+  if (phase === "open") return { phase, title: "Pedido pronto", label: "Pronto para retirar", detail: "" };
+  return { phase, title: "Retirada encerrada", label: "Retirada encerrada", detail: "" };
 }
 
 export const foodById = (id: number) => foods.find((food) => food.id === id) ?? foods[0];

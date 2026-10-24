@@ -1,11 +1,21 @@
 import Icon from "../components/Icon";
 import PickupCountdown from "../components/PickupCountdown";
-import { foodById } from "../data";
+import { foodById, orderStage } from "../data";
 import { useApp } from "../store";
+import { useNow } from "../time";
 
 export default function Orders() {
   const { orders, activeOrders, openOrder, setTab } = useApp();
+  const now = useNow();
   const history = orders.filter((order) => order.collected);
+  // O que já dá para retirar vem primeiro (quem fecha antes no topo), depois o que ainda vai abrir.
+  const rank = { open: 0, soon: 1, closed: 2 };
+  const upcoming = [...activeOrders].sort((a, b) => {
+    const foodA = foodById(a.foodId);
+    const foodB = foodById(b.foodId);
+    const byStage = rank[orderStage(foodA, now).phase] - rank[orderStage(foodB, now).phase];
+    return byStage || foodA.pickupEnd - foodB.pickupEnd;
+  });
 
   return (
     <main className="inside-page">
@@ -16,8 +26,9 @@ export default function Orders() {
 
       {activeOrders.length ? (
         <div className="strip-list">
-          {activeOrders.map((order) => {
+          {upcoming.map((order) => {
             const food = foodById(order.foodId);
+            const stage = orderStage(food, now);
             return (
               <div className="halo strip-halo" key={order.id}>
                 <button
@@ -27,7 +38,7 @@ export default function Orders() {
                   aria-haspopup="dialog"
                 >
                   <span className="strip-main">
-                    <span className="status">Pronto para retirar</span>
+                    <span className={`status status--${stage.phase}`}>{stage.label}</span>
                     <span className="strip-title">{food.title}</span>
                     <span className="strip-meta">
                       <PickupCountdown food={food} /> · {food.spot}
