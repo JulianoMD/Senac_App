@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createOrder, foods, tasks, type Food, type Order, type TaskId } from "./data";
+import { addFoods, createOrder, foods, tasks, type Food, type Order, type TaskId } from "./data";
 import { flyToOrders, markMorphFrom, morphCard, withTransition } from "./motion";
 
 export type Tab = "discover" | "orders" | "favorites" | "profile";
@@ -22,6 +22,18 @@ type Saved = {
   notify: boolean;
   motion: MotionPreference;
   theme: ThemePreference;
+  /** Ofertas publicadas pelo Modo cantina neste aparelho. */
+  customFoods: Food[];
+  /** Refeições solidárias que esta pessoa pagou para colegas. */
+  donated: number;
+  /** Sobras doadas ao banco de alimentos pelo Modo cantina. */
+  leftoversDonated: number;
+  /** Códigos solidários já usados (cada um vale uma vez). */
+  redeemed: string[];
+  /** Avisos já enviados (para não repetir). */
+  alerted: string[];
+  /** Retiradas de outros estudantes confirmadas no balcão pelo Modo cantina. */
+  counterCollected: string[];
 };
 
 
@@ -63,12 +75,20 @@ const initialState: Saved = {
   notify: true,
   motion: "system",
   theme: "system",
+  customFoods: [],
+  donated: 0,
+  leftoversDonated: 0,
+  redeemed: [],
+  alerted: [],
+  counterCollected: [],
 };
 
 function load(): Saved {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...initialState, ...JSON.parse(raw) } : initialState;
+    const saved: Saved = raw ? { ...initialState, ...JSON.parse(raw) } : initialState;
+    addFoods(saved.customFoods);
+    return saved;
   } catch {
     return initialState;
   }
@@ -81,6 +101,7 @@ function useAppState() {
   const [openOrderId, setOpenOrderId] = useState<string | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(() => !load().onboarded);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [vendorOpen, setVendorOpen] = useState(() => new URLSearchParams(window.location.search).get("modo") === "cantina");
   const [hint, setHintState] = useState<Hint>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const systemReduced = useMediaQuery("(prefers-reduced-motion: reduce)");
@@ -221,15 +242,60 @@ function useAppState() {
     }
   }
 
-  function pay(food: Food, paidWith: string) {
-    const order = createOrder(food, paidWith);
+  function pay(food: Food, paidWith: string, extra: Pick<Order, "slot" | "donated" | "solidarity"> = {}) {
+    const order = createOrder(food, paidWith, extra);
     pendingFly.current = true;
     update((current) => ({
       orders: [order, ...current.orders],
       stock: { ...current.stock, [food.id]: Math.max(0, (current.stock[food.id] ?? 0) - 1) },
+      donated: current.donated + (extra.donated ? 1 : 0),
     }));
     complete("reserve");
     return order;
+  }
+
+  // Código solidário (entregue pela assistência estudantil): vale uma refeição, uma vez só.
+  function checkSolidarityCode(raw: string): "ok" | "invalid" | "used" {
+    const code = raw.trim().toUpperCase();
+    if (!/^SOL-\d{4}$/.test(code)) return "invalid";
+    return saved.redeemed.includes(code) ? "used" : "ok";
+  }
+
+  function redeemSolidarityCode(raw: string) {
+    const code = raw.trim().toUpperCase();
+    update((current) => ({ redeemed: [...current.redeemed, code] }));
+  }
+
+  // Modo cantina: publicar sobra, ajustar quantidade, doar o que sobrou e confirmar retiradas.
+  function publishFood(food: Food) {
+    addFoods([food]);
+    update((current) => ({
+      customFoods: [...current.customFoods, food],
+      stock: { ...current.stock, [food.id]: food.stock },
+    }));
+  }
+
+  function setStock(id: number, value: number) {
+    update((current) => ({ stock: { ...current.stock, [id]: Math.max(0, Math.min(99, value)) } }));
+  }
+
+  function donateLeftovers(place: string) {
+    const ids = foods.filter((food) => food.place === place).map((food) => food.id);
+    const amount = ids.reduce((sum, id) => sum + (saved.stock[id] ?? 0), 0);
+    if (amount === 0) return 0;
+    update((current) => ({
+      leftoversDonated: current.leftoversDonated + amount,
+      stock: { ...current.stock, ...Object.fromEntries(ids.map((id) => [id, 0])) },
+    }));
+    return amount;
+  }
+
+  function confirmCounterPickup(id: string) {
+    update((current) => ({ counterCollected: [...current.counterCollected, id] }));
+  }
+
+  function markAlerted(key: string) {
+    update((current) => (current.alerted.includes(key) ? {} : { alerted: [...current.alerted.slice(-80), key] }));
   }
 
   function cancelOrder(order: Order) {
@@ -275,6 +341,15 @@ function useAppState() {
     finishOnboarding,
     helpOpen,
     setHelpOpen,
+    vendorOpen,
+    setVendorOpen,
+    checkSolidarityCode,
+    redeemSolidarityCode,
+    publishFood,
+    setStock,
+    donateLeftovers,
+    confirmCounterPickup,
+    markAlerted,
     hint,
     showHint,
     toasts,

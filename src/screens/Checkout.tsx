@@ -6,7 +6,18 @@ import Photo from "../components/Photo";
 import PickupCountdown from "../components/PickupCountdown";
 import PickupTicket from "../components/PickupTicket";
 import StoreMark from "../components/StoreMark";
-import { brl, discountOf, distance, paymentMethods, pickupStatus, type Food, type Order } from "../data";
+import {
+  brl,
+  clock,
+  discountOf,
+  distance,
+  paymentMethods,
+  pickupSlots,
+  pickupStatus,
+  SLOT_MINUTES,
+  type Food,
+  type Order,
+} from "../data";
 import { withTransition } from "../motion";
 import { useNow } from "../time";
 import { useApp } from "../store";
@@ -46,19 +57,38 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
   const [order, setOrder] = useState<Order | null>(null);
 
   const left = app.stock[food.id] ?? food.stock;
+  const now = useNow();
   // Depois do horário de retirada não dá para reservar (prevenção de erro).
-  const phase = pickupStatus(food, useNow()).phase;
+  const phase = pickupStatus(food, now).phase;
   const closed = phase === "closed";
   const existing = app.activeOrders.find((item) => item.foodId === food.id);
 
+  // Horário marcado: a primeira faixa com vaga já vem escolhida.
+  const slots = pickupSlots(food, now, app.orders);
+  const [slotChoice, setSlotChoice] = useState<number | null>(null);
+  const slot = slots.find((item) => item.start === slotChoice && item.left > 0) ?? slots.find((item) => item.left > 0) ?? null;
+
+  // Refeição solidária: pagar uma a mais para um colega, ou usar um código recebido.
+  const [donate, setDonate] = useState(false);
+  const [codeOpen, setCodeOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeStatus, setCodeStatus] = useState<"idle" | "ok" | "invalid" | "used">("idle");
+  const solidarity = codeStatus === "ok";
+  const total = solidarity ? 0 : food.price * (donate ? 2 : 1);
+
+  function applyCode() {
+    setCodeStatus(app.checkSolidarityCode(code));
+  }
+
   // Um toque só: um segundo toque rápido no "Pagar" não gera outra cobrança.
   function pay() {
-    if (payingRef.current || left === 0 || closed) return;
+    if (payingRef.current || left === 0 || closed || !slot) return;
     payingRef.current = true;
     setPaying(true);
     window.setTimeout(() => {
-      const paidWith = paymentMethods.find((item) => item.id === method)?.short ?? "Pix";
-      const created = app.pay(food, paidWith);
+      const paidWith = solidarity ? "Solidário" : (paymentMethods.find((item) => item.id === method)?.short ?? "Pix");
+      if (solidarity) app.redeemSolidarityCode(code);
+      const created = app.pay(food, paidWith, { slot: slot.start, donated: donate && !solidarity, solidarity });
       go("done", () => {
         setOrder(created);
         setPaying(false);
@@ -85,8 +115,15 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
         <div className="celebrate">
           <p className="celebrate-title">Você salvou uma refeição!</p>
           <p>
-            E economizou <strong>{brl.format(food.original - food.price)}</strong>. Agora é só passar no balcão.
+            {order.solidarity ? (
+              <>Refeição solidária confirmada. Agora é só passar no balcão.</>
+            ) : (
+              <>
+                E economizou <strong>{brl.format(food.original - food.price)}</strong>. Agora é só passar no balcão.
+              </>
+            )}
           </p>
+          {order.donated && <p className="celebrate-gift">E uma refeição sua vai para um colega. Obrigado!</p>}
         </div>
         <PickupTicket order={order} printing />
         <button className="sheet-action" type="button" onClick={() => app.setTab("orders", { closeOffer: true })}>
@@ -123,27 +160,116 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
           <b>{brl.format(food.price)}</b>
         </div>
 
-        <fieldset className="pay-methods">
-          <legend>Como você quer pagar?</legend>
-          {paymentMethods.map((item) => (
-            <label className="pay-option" key={item.id}>
+        {/* Horário marcado: poucas pessoas por faixa, ninguém espera no balcão. */}
+        <fieldset className="slot-picker">
+          <legend>Que horas você passa no balcão?</legend>
+          {slots.length ? (
+            <div className="slot-list">
+              {slots.map((item) => (
+                <label key={item.start} className={item.left === 0 ? "is-full" : ""}>
+                  <input
+                    type="radio"
+                    name="slot"
+                    value={item.start}
+                    checked={slot?.start === item.start}
+                    disabled={item.left === 0}
+                    onChange={() => setSlotChoice(item.start)}
+                  />
+                  <span>
+                    <b>{clock(item.start)}</b>
+                    <small>{item.left === 0 ? "Lotado" : item.left === 1 ? "1 vaga" : `${item.left} vagas`}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="slot-empty">Não sobrou nenhum horário livre nesta retirada.</p>
+          )}
+          <p className="slot-help">
+            Cada horário de {SLOT_MINUTES} min recebe poucas pessoas: você chega e é atendido na hora.
+          </p>
+        </fieldset>
+
+        {solidarity ? (
+          <p className="solidarity-ok">
+            <Icon name="check" size={18} />
+            Código solidário aceito: esta refeição sai de graça.
+          </p>
+        ) : (
+          <fieldset className="pay-methods">
+            <legend>Como você quer pagar?</legend>
+            {paymentMethods.map((item) => (
+              <label className="pay-option" key={item.id}>
+                <span className="pay-icon">
+                  <Icon name={methodIcon[item.id]} size={20} />
+                </span>
+                <span className="pay-text">
+                  {item.label}
+                  <small>{item.hint}</small>
+                </span>
+                <input
+                  type="radio"
+                  name="payment"
+                  value={item.id}
+                  checked={method === item.id}
+                  onChange={() => setMethod(item.id)}
+                />
+              </label>
+            ))}
+          </fieldset>
+        )}
+
+        {/* Refeição solidária: quem pode paga uma a mais; quem precisa usa um código da assistência estudantil. */}
+        <div className="solidarity">
+          {!solidarity && (
+            <label className="solidarity-row">
               <span className="pay-icon">
-                <Icon name={methodIcon[item.id]} size={20} />
+                <Icon name="gift" size={20} />
               </span>
               <span className="pay-text">
-                {item.label}
-                <small>{item.hint}</small>
+                Pagar uma refeição solidária
+                <small>+{brl.format(food.price)} para um colega, pela assistência estudantil</small>
               </span>
               <input
-                type="radio"
-                name="payment"
-                value={item.id}
-                checked={method === item.id}
-                onChange={() => setMethod(item.id)}
+                className="switch"
+                type="checkbox"
+                role="switch"
+                checked={donate}
+                onChange={(event) => setDonate(event.target.checked)}
               />
             </label>
-          ))}
-        </fieldset>
+          )}
+          {!donate &&
+            (codeOpen ? (
+              <div className="solidarity-code">
+                <label>
+                  <span>Código solidário</span>
+                  <input
+                    value={code}
+                    onChange={(event) => {
+                      setCode(event.target.value);
+                      setCodeStatus("idle");
+                    }}
+                    placeholder="SOL-1234"
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    disabled={solidarity}
+                  />
+                </label>
+                {!solidarity && (
+                  <button className="code-button" type="button" onClick={applyCode} disabled={!code.trim()}>
+                    Usar
+                  </button>
+                )}
+                {codeStatus === "invalid" && <p role="alert">Código inválido: ele tem o formato SOL-1234.</p>}
+                {codeStatus === "used" && <p role="alert">Este código já foi usado.</p>}
+              </div>
+            ) : (
+              <button className="link-button" type="button" onClick={() => setCodeOpen(true)}>
+                Tenho um código solidário
+              </button>
+            ))}
+        </div>
 
         <p className="pay-note">
           <Icon name="info" size={18} />
@@ -156,21 +282,23 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
           <button
             className="primary-button primary-button--wide"
             type="button"
-            disabled={paying || left === 0 || closed}
+            disabled={paying || left === 0 || closed || !slot}
             aria-busy={paying}
             onClick={pay}
           >
             {paying ? (
               <>
                 <span className="spinner" aria-hidden="true" />
-                Confirmando pagamento…
+                {solidarity ? "Confirmando…" : "Confirmando pagamento…"}
               </>
             ) : left === 0 ? (
               "Esgotou enquanto você escolhia"
-            ) : closed ? (
+            ) : closed || !slot ? (
               "Retirada encerrada"
+            ) : solidarity ? (
+              `Confirmar para as ${clock(slot.start)}`
             ) : (
-              `Pagar ${brl.format(food.price)}`
+              `Pagar ${brl.format(total)} · ${clock(slot.start)}`
             )}
           </button>
         </div>

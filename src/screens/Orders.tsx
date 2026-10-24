@@ -1,6 +1,6 @@
 import Icon from "../components/Icon";
 import PickupCountdown from "../components/PickupCountdown";
-import { foodById, orderStage } from "../data";
+import { foodById, orderStage, slotLabel } from "../data";
 import { useApp } from "../store";
 import { useNow } from "../time";
 
@@ -41,7 +41,8 @@ export default function Orders() {
                     <span className={`status status--${stage.phase}`}>{stage.label}</span>
                     <span className="strip-title">{food.title}</span>
                     <span className="strip-meta">
-                      <PickupCountdown food={food} /> · {food.spot}
+                      <PickupCountdown food={food} label={order.slot ? `Seu horário ${slotLabel(order.slot)}` : undefined} />
+                      <span>· {food.spot}</span>
                     </span>
                   </span>
                   <span className="strip-stub">

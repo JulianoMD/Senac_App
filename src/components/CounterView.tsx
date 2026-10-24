@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { foodById, user, type Order } from "../data";
+import { foodById, slotLabel, user, type Order } from "../data";
 import Barcode from "./Barcode";
 import CollectSlider from "./CollectSlider";
 import Icon from "./Icon";
@@ -51,6 +51,7 @@ export default function CounterView({
         </div>
         <p className="counter-info">
           {food.title} · {food.spot}
+          {order.slot && ` · ${slotLabel(order.slot)}`}
         </p>
         <PickupCountdown food={food} size="lg" />
       </div>

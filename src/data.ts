@@ -6,6 +6,7 @@ export const user = {
   name: "Marina Alves",
   firstName: "Marina",
   email: "marina.alves@aluno.sp.senac.br",
+  course: "Gastronomia",
 };
 
 export type Food = {
@@ -145,12 +146,13 @@ function atMinutesFromNow(minutes: number) {
   return date.getTime();
 }
 
-const clock = (time: number) =>
+export const clock = (time: number) =>
   new Date(time).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
 // "à 00:30" / "à 01:00", mas "às 22:30".
 export const atClock = (time: number) => `${new Date(time).getHours() <= 1 ? "à" : "às"} ${clock(time)}`;
 
+// Lista viva: as ofertas que a cantina publica pelo "Modo cantina" entram aqui também.
 export const foods: Food[] = seeds.map(({ window: [opens, closes], patio, ...food }) => {
   const pickupStart = atMinutesFromNow(opens);
   const pickupEnd = atMinutesFromNow(closes);
@@ -198,6 +200,39 @@ export function orderStage(food: Food, now: number) {
 }
 
 export const foodById = (id: number) => foods.find((food) => food.id === id) ?? foods[0];
+
+// Ofertas publicadas pelas cantinas (guardadas no aparelho) entram na mesma lista das do dia.
+export function addFoods(list: Food[]) {
+  for (const food of list) if (!foods.some((item) => item.id === food.id)) foods.push(food);
+}
+
+export const cantinas = [...new Set(foods.map((food) => food.place))];
+
+// Horário marcado: a retirada é dividida em faixas de 10 minutos com poucas vagas cada,
+// assim as pessoas chegam espalhadas e não se forma fila no balcão.
+export const SLOT_MINUTES = 10;
+export const SLOT_CAPACITY = 4;
+
+export type Slot = { start: number; end: number; left: number };
+
+// Ocupação das outras pessoas, estável por oferta e horário (simula o movimento do campus).
+function othersInSlot(foodId: number, start: number) {
+  const seed = (foodId * 7919 + Math.floor(start / 60_000) * 31) % 97;
+  return seed % SLOT_CAPACITY;
+}
+
+export function pickupSlots(food: Food, now: number, mine: Order[] = []): Slot[] {
+  const step = SLOT_MINUTES * 60_000;
+  const first = Math.max(food.pickupStart, Math.ceil(now / step) * step);
+  const slots: Slot[] = [];
+  for (let start = first; start + step <= food.pickupEnd; start += step) {
+    const taken = othersInSlot(food.id, start) + mine.filter((order) => order.foodId === food.id && order.slot === start).length;
+    slots.push({ start, end: start + step, left: Math.max(0, SLOT_CAPACITY - taken) });
+  }
+  return slots;
+}
+
+export const slotLabel = (start: number) => `${clock(start)}–${clock(start + SLOT_MINUTES * 60_000)}`;
 
 export const LOW_STOCK = 3;
 
@@ -273,6 +308,12 @@ export type Order = {
   foodId: number;
   paidWith: string;
   collected?: boolean;
+  /** Início da faixa de 10 min escolhida para retirar. */
+  slot?: number;
+  /** Pagou também uma refeição solidária para um colega. */
+  donated?: boolean;
+  /** Retirada paga com um código solidário (refeição doada). */
+  solidarity?: boolean;
 };
 
 export const paymentMethods = [
@@ -280,7 +321,11 @@ export const paymentMethods = [
   { id: "card", label: "Cartão de crédito", short: "Cartão", hint: "Final 4821" },
 ];
 
-export function createOrder(food: Food, paidWith: string): Order {
+export function createOrder(
+  food: Food,
+  paidWith: string,
+  extra: Pick<Order, "slot" | "donated" | "solidarity"> = {},
+): Order {
   const number = Math.floor(1000 + Math.random() * 9000);
   return {
     id: `${food.id}-${number}-${Date.now()}`,
@@ -288,8 +333,44 @@ export function createOrder(food: Food, paidWith: string): Order {
     ean: ean13(`78912345${number}`),
     foodId: food.id,
     paidWith,
+    ...extra,
   };
 }
+
+// Reservas de outros estudantes que a cantina vê no painel (simuladas, estáveis por oferta).
+const classmates = ["Lucas Prado", "Ana Ribeiro", "João Kenji", "Beatriz Lima", "Rafael Souza", "Camila Torres"];
+
+export type CampusReservation = { id: string; name: string; code: string; ean: string; foodId: number; slot?: number };
+
+export function campusReservations(food: Food, now: number): CampusReservation[] {
+  const slots = pickupSlots(food, now).slice(0, 3);
+  return slots.map((slot, index) => {
+    const number = 1000 + ((food.id * 613 + index * 977) % 9000);
+    return {
+      id: `campus-${food.id}-${index}`,
+      name: classmates[(food.id + index * 2) % classmates.length],
+      code: `FZ-${number}`,
+      ean: ean13(`78912345${number}`),
+      foodId: food.id,
+      slot: slot.start,
+    };
+  });
+}
+
+// Desafio do campus: meta coletiva da semana e quanto cada curso já salvou.
+export const WEEKLY_GOAL = 300;
+export const CO2_PER_MEAL = 2.5;
+
+export const courses = [
+  { name: "Gastronomia", saved: 72 },
+  { name: "Tecnologia", saved: 64 },
+  { name: "Gestão e Negócios", saved: 51 },
+  { name: "Moda", saved: 38 },
+  { name: "Saúde", saved: 29 },
+];
+
+// Fundo solidário: refeições pagas por estudantes para colegas que precisam (antes desta pessoa).
+export const SOLIDARITY_BASE = 86;
 
 export const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 

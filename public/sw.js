@@ -2,7 +2,7 @@
 // - Páginas: tenta a rede primeiro (sempre a versão mais nova) e usa a cópia salva se estiver offline.
 // - Arquivos do app, fotos das ofertas e fontes: usa a cópia salva na hora e atualiza em segundo plano.
 
-const VERSION = "fila-zero-v1";
+const VERSION = "fila-zero-v2";
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
 const scope = new URL(self.registration.scope);
@@ -71,6 +71,19 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => cached);
       return cached || fresh;
+    }),
+  );
+});
+
+// Toque no aviso: volta para o app aberto (ou abre) direto em Pedidos.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || "./", scope).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((client) => client.url.startsWith(scope.href));
+      if (open) return open.focus().then(() => open.navigate(url));
+      return self.clients.openWindow(url);
     }),
   );
 });

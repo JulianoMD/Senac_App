@@ -1,4 +1,4 @@
-import { foodById, orderStage, user, type Order } from "../data";
+import { foodById, orderStage, slotLabel, user, type Order } from "../data";
 import { useNow } from "../time";
 import Barcode from "./Barcode";
 import PickupCountdown from "./PickupCountdown";
@@ -56,8 +56,8 @@ export default function PickupTicket({
           </div>
           <dl className="ticket-facts">
             <div>
-              <dt>Retire hoje</dt>
-              <dd>{food.pickup}</dd>
+              <dt>{order.slot ? "Seu horário" : "Retire hoje"}</dt>
+              <dd>{order.slot ? slotLabel(order.slot) : food.pickup}</dd>
             </div>
             <div>
               <dt>Onde</dt>

@@ -6,6 +6,7 @@ import Photo from "../components/Photo";
 import Swoosh from "../components/Swoosh";
 import {
   categories,
+  clock,
   foodById,
   foods,
   greeting,
@@ -41,7 +42,8 @@ function ActiveOrderBanner() {
           {orders.length > 1 && ` (+${orders.length - 1})`}
         </strong>
         <span>
-          {order.code} · {stage.phase === "soon" ? stage.detail : food.title}
+          {order.code} ·{" "}
+          {order.slot && stage.phase !== "closed" ? `seu horário ${clock(order.slot)}` : stage.phase === "soon" ? stage.detail : food.title}
         </span>
       </span>
       <span className="active-order-cta">Ver código</span>

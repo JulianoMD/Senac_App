@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Achievements, { type Achievement } from "../components/Achievements";
 import ActivityRings from "../components/ActivityRings";
+import CampusChallenge from "../components/CampusChallenge";
 import Barcode from "../components/Barcode";
 import CountUp from "../components/CountUp";
 import CouponTicket from "../components/CouponTicket";
@@ -8,6 +9,7 @@ import Icon from "../components/Icon";
 import Sheet from "../components/Sheet";
 import { coupons, foodById, tasks, user, welcomeCoupon, type Coupon } from "../data";
 import avatar from "../assets/avatar-marina.png";
+import { canNotify } from "../alerts";
 import { isIOS, useInstall } from "../install";
 import { useApp, type ThemePreference } from "../store";
 
@@ -60,6 +62,7 @@ export default function Profile() {
   const [openCoupon, setOpenCoupon] = useState<Coupon | null>(null);
   const install = useInstall();
   const [installHelp, setInstallHelp] = useState(false);
+  const [permission, setPermission] = useState(() => (canNotify() ? Notification.permission : "denied"));
 
   const meals = 11 + app.orders.length;
   const saved =
@@ -205,6 +208,8 @@ export default function Profile() {
         </div>
       </section>
 
+      <CampusChallenge />
+
       <section className="profile-section">
         <div className="section-row">
           <h2 className="section-title">Conquistas</h2>
@@ -251,17 +256,31 @@ export default function Profile() {
               <Icon name="bell" size={18} />
             </span>
             <span>
-              Avisar quando um favorito tiver oferta
-              <small>{app.notify ? "Ativado" : "Desativado"}</small>
+              Avisos de retirada e favoritos
+              <small>
+                {!app.notify
+                  ? "Desativados"
+                  : permission === "granted"
+                    ? "Chegam no celular, mesmo com o app fechado na tela"
+                    : permission === "denied"
+                      ? "Só dentro do app (o navegador bloqueou as notificações)"
+                      : "Só dentro do app por enquanto"}
+              </small>
             </span>
             <input
               className="switch"
               type="checkbox"
               role="switch"
               checked={app.notify}
-              onChange={(event) => {
-                app.setNotify(event.target.checked);
-                app.toast(event.target.checked ? "Avisos ativados" : "Avisos desativados");
+              onChange={async (event) => {
+                const on = event.target.checked;
+                app.setNotify(on);
+                // A permissão do sistema só pode ser pedida a partir de um toque da pessoa.
+                if (on && canNotify() && Notification.permission === "default") {
+                  const answer = await Notification.requestPermission();
+                  setPermission(answer);
+                }
+                app.toast(on ? "Avisos ativados" : "Avisos desativados");
               }}
             />
           </label>
@@ -314,6 +333,16 @@ export default function Profile() {
               ))}
             </fieldset>
           </div>
+          <button className="menu-row" type="button" onClick={() => app.setVendorOpen(true)}>
+            <span className="menu-icon">
+              <Icon name="bag" size={18} />
+            </span>
+            <span>
+              Modo cantina
+              <small>Para quem vende: publicar sobras e entregar no balcão</small>
+            </span>
+            <Icon name="arrow" size={18} />
+          </button>
           {!install.installed && (
             <button
               className="menu-row"

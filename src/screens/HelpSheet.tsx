@@ -13,6 +13,16 @@ const faq = [
       "São refeições e lanches feitos no dia que não foram vendidos. Em vez de ir para o lixo, saem com desconto. A cantina não perde e você economiza.",
   },
   {
+    question: "Para que serve o horário marcado?",
+    answer:
+      "Ao reservar você escolhe uma faixa de 10 minutos, e cada faixa recebe poucas pessoas. Assim ninguém chega junto e você é atendido na hora, sem fila.",
+  },
+  {
+    question: "O que é a refeição solidária?",
+    answer:
+      "Ao pagar, você pode pagar uma refeição a mais para um colega que precisa. A assistência estudantil entrega códigos (SOL-1234) de forma discreta; quem recebe usa o código no pagamento e retira normalmente, sem ninguém saber.",
+  },
+  {
     question: "Posso cancelar uma reserva?",
     answer:
       "Sim, até o início do horário de retirada. Abra o pedido em Pedidos e toque em Cancelar reserva. O valor volta pela mesma forma de pagamento.",
@@ -21,6 +31,11 @@ const faq = [
     question: "E se eu não conseguir retirar no horário?",
     answer:
       "Fale com a cantina pelo balcão. Depois que o horário termina, as sobras podem ser doadas e o pedido não é reembolsado.",
+  },
+  {
+    question: "O que é o Desafio do campus?",
+    answer:
+      "Uma meta da semana para o campus inteiro. Cada reserva conta para o seu curso no ranking; se a meta for batida até domingo, todo mundo ganha um cupom.",
   },
   {
     question: "Como uso um cupom de desconto?",

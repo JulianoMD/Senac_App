@@ -10,15 +10,18 @@ import Onboarding from "./screens/Onboarding";
 import Orders from "./screens/Orders";
 import OrderSheet from "./screens/OrderSheet";
 import Profile from "./screens/Profile";
+import VendorPanel from "./screens/VendorPanel";
 import logo from "./assets/senac-logo.png";
 import avatar from "./assets/avatar-marina.png";
 import { foods } from "./data";
+import { useAlerts } from "./alerts";
 import { canTransition } from "./motion";
 import AppProvider, { useApp } from "./store";
 
 function Shell() {
   const app = useApp();
   const openOrder = app.orders.find((order) => order.id === app.openOrderId) ?? null;
+  useAlerts();
 
   // Depois da primeira entrada, quem anima a troca de telas é a View Transition
   // (evita animar duas vezes o mesmo conteúdo).
@@ -82,6 +85,10 @@ function Shell() {
 
       <Sheet open={app.helpOpen} onClose={() => app.setHelpOpen(false)} label="Ajuda">
         {(close) => <HelpSheet close={close} />}
+      </Sheet>
+
+      <Sheet open={app.vendorOpen} onClose={() => app.setVendorOpen(false)} label="Modo cantina" variant="fullscreen">
+        {(close) => <VendorPanel close={close} />}
       </Sheet>
 
       <Sheet open={app.onboardingOpen} onClose={app.finishOnboarding} label="Boas-vindas ao Fila Zero" variant="fullscreen">
