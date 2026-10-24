@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Checklist from "../components/Checklist";
 import FoodCard from "../components/FoodCard";
+import FoodCardSkeleton from "../components/FoodCardSkeleton";
 import Icon from "../components/Icon";
 import Photo from "../components/Photo";
 import Swoosh from "../components/Swoosh";
@@ -43,9 +44,23 @@ function ActiveOrderBanner() {
 
 const headline = "Bateu a fome? Garanta agora e retire sem fila.";
 
+// As ofertas "chegam" uma vez por visita: na primeira entrada aparecem as silhuetas dos cards
+// e depois o conteúdo real no mesmo lugar (com dados de um servidor, esse seria o tempo de busca).
+let offersReady = false;
+
 export default function Discover() {
   const { stock } = useApp();
   const [category, setCategory] = useState("Todos");
+  const [loading, setLoading] = useState(!offersReady);
+
+  useEffect(() => {
+    if (!loading) return;
+    const timer = window.setTimeout(() => {
+      offersReady = true;
+      withTransition("skeleton", () => setLoading(false));
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [loading]);
   const [search, setSearch] = useState("");
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -156,7 +171,27 @@ export default function Discover() {
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div role="status" aria-label="Carregando ofertas">
+          <section className="content-section">
+            <h2 className="section-title">
+              <span className="live-dot" aria-hidden="true" />
+              Acabando agora
+            </h2>
+            <div className="carousel">
+              <FoodCardSkeleton />
+              <FoodCardSkeleton />
+            </div>
+          </section>
+          <section className="content-section">
+            <h2 className="section-title">Disponíveis hoje</h2>
+            <div className="feed">
+              <FoodCardSkeleton />
+              <FoodCardSkeleton />
+            </div>
+          </section>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="empty-state">
           <span className="empty-icon tone-blue">
             <Icon name="search" size={26} />

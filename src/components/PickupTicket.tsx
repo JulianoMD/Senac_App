@@ -1,14 +1,17 @@
 import { foodById, user, type Order } from "../data";
 import Barcode from "./Barcode";
+import PickupCountdown from "./PickupCountdown";
 
 export default function PickupTicket({
   order,
   printing = false,
   torn = false,
+  onCodeClick,
 }: {
   order: Order;
   printing?: boolean;
   torn?: boolean;
+  onCodeClick?: () => void;
 }) {
   const food = foodById(order.foodId);
   const showStub = !order.collected || torn;
@@ -19,7 +22,13 @@ export default function PickupTicket({
         <span className="ticket-handle" aria-hidden="true" />
         <p className="ticket-label">Retirada em nome de</p>
         <p className="ticket-name">{user.name}</p>
-        <p className="ticket-code">{order.code}</p>
+        {onCodeClick ? (
+          <button className="ticket-code" type="button" onClick={onCodeClick} aria-label={`Ampliar o código ${order.code} para o balcão`}>
+            {order.code}
+          </button>
+        ) : (
+          <p className="ticket-code">{order.code}</p>
+        )}
         {order.collected ? (
           <p className="stamp-row">
             <span className="stamp">Retirado</span>
@@ -53,6 +62,11 @@ export default function PickupTicket({
               <dd>{order.paidWith}</dd>
             </div>
           </dl>
+          {!order.collected && (
+            <p className="ticket-countdown">
+              <PickupCountdown food={food} size="md" />
+            </p>
+          )}
         </div>
       </div>
       {showStub && (

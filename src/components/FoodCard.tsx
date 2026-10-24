@@ -3,6 +3,7 @@ import { brl, discountOf, LOW_STOCK, type Food } from "../data";
 import { useApp } from "../store";
 import Icon from "./Icon";
 import Photo from "./Photo";
+import PickupCountdown from "./PickupCountdown";
 import StoreMark from "./StoreMark";
 
 export default function FoodCard({ food }: { food: Food }) {
@@ -58,8 +59,8 @@ export default function FoodCard({ food }: { food: Food }) {
             </button>
           </h3>
           <p className="food-meta">
-            <Icon name="clock" size={14} />
-            {food.pickup} · {food.spot}
+            <PickupCountdown food={food} />
+            <span className="food-spot">· {food.spot}</span>
           </p>
         </div>
         <div className="food-price">

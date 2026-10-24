@@ -2,10 +2,12 @@ import { useState } from "react";
 import Confetti from "../components/Confetti";
 import Icon, { type IconName } from "../components/Icon";
 import Photo from "../components/Photo";
+import PickupCountdown from "../components/PickupCountdown";
 import PickupTicket from "../components/PickupTicket";
 import StoreMark from "../components/StoreMark";
-import { brl, discountOf, paymentMethods, type Food, type Order } from "../data";
+import { brl, discountOf, paymentMethods, pickupStatus, type Food, type Order } from "../data";
 import { withTransition } from "../motion";
+import { useNow } from "../time";
 import { useApp } from "../store";
 
 const methodIcon: Record<string, IconName> = { pix: "pix", card: "card" };
@@ -42,6 +44,8 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
   const [order, setOrder] = useState<Order | null>(null);
 
   const left = app.stock[food.id] ?? food.stock;
+  // Depois do horário de retirada não dá para reservar (prevenção de erro).
+  const closed = pickupStatus(food, useNow()).phase === "closed";
   const existing = app.activeOrders.find((item) => item.foodId === food.id);
 
   function pay() {
@@ -197,7 +201,10 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
             <span className="fact-icon tone-blue">
               <Icon name="clock" size={18} />
             </span>
-            Retire hoje, {food.pickup}
+            <span className="fact-text">
+              Retire hoje, {food.pickup}
+              <PickupCountdown food={food} />
+            </span>
           </li>
           <li>
             <span className="fact-icon tone-blue">
@@ -221,7 +228,11 @@ export default function Checkout({ food, close }: { food: Food; close: () => voi
           </span>
           <strong>{brl.format(food.price)}</strong>
         </div>
-        {left > 0 ? (
+        {closed ? (
+          <button className="primary-button" type="button" disabled>
+            Retirada encerrada
+          </button>
+        ) : left > 0 ? (
           <button className="primary-button primary-button--accent" type="button" onClick={() => go("payment")}>
             Reservar
             {left <= 3 && <small>{left === 1 ? "última" : `restam ${left}`}</small>}

@@ -1,4 +1,5 @@
 import Icon from "../components/Icon";
+import PickupCountdown from "../components/PickupCountdown";
 import { foodById } from "../data";
 import { useApp } from "../store";
 
@@ -29,7 +30,7 @@ export default function Orders() {
                     <span className="status">Pronto para retirar</span>
                     <span className="strip-title">{food.title}</span>
                     <span className="strip-meta">
-                      Hoje, {food.pickup} · {food.spot}
+                      <PickupCountdown food={food} /> · {food.spot}
                     </span>
                   </span>
                   <span className="strip-stub">

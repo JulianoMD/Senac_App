@@ -1,16 +1,21 @@
-import { useState } from "react";
-import CollectSlider from "../components/CollectSlider";
+import { useRef, useState } from "react";
 import Confetti from "../components/Confetti";
+import CounterView from "../components/CounterView";
 import Icon from "../components/Icon";
 import PickupTicket from "../components/PickupTicket";
+import Sheet from "../components/Sheet";
 import { brl, foodById, user, type Order } from "../data";
+import { canTransition, withTransition } from "../motion";
 import { useApp } from "../store";
 
-// Código de retirada: deslize para confirmar no balcão, ou cancele com confirmação (prevenção de erros).
+// Código de retirada: abre o modo balcão para o atendente ler e confirmar,
+// ou cancela com confirmação (prevenção de erros).
 export default function OrderSheet({ order, close }: { order: Order; close: () => void }) {
   const { cancelOrder, collectOrder } = useApp();
   const [confirming, setConfirming] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [counterOpen, setCounterOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const food = foodById(order.foodId);
 
   function collect() {
@@ -18,8 +23,34 @@ export default function OrderSheet({ order, close }: { order: Order; close: () =
     window.setTimeout(() => collectOrder(order), 450);
   }
 
+  const codeElement = () => rootRef.current?.querySelector<HTMLElement>(".ticket-code") ?? null;
+
+  // O código do ticket "cresce" até o centro da tela cheia (e volta ao fechar).
+  function openCounter() {
+    const code = codeElement();
+    if (code) code.style.viewTransitionName = "pickup-code";
+    withTransition("counter", () => {
+      if (code) code.style.viewTransitionName = "";
+      setCounterOpen(true);
+    });
+  }
+
+  function closeCounter(then?: () => void) {
+    const code = codeElement();
+    const transition = withTransition("counter", () => {
+      setCounterOpen(false);
+      if (code) code.style.viewTransitionName = "pickup-code";
+    });
+    const done = () => {
+      if (code) code.style.viewTransitionName = "";
+      then?.();
+    };
+    if (transition) transition.finished.finally(done);
+    else done();
+  }
+
   return (
-    <div className={`ticket-sheet ${celebrating ? "ticket-sheet--celebrate" : ""}`}>
+    <div ref={rootRef} className={`ticket-sheet ${celebrating ? "ticket-sheet--celebrate" : ""}`}>
       {celebrating && <Confetti />}
       <div className="ticket-sheet-bar" data-sheet-handle>
         <span className="sheet-grabber" aria-hidden="true" />
@@ -36,14 +67,15 @@ export default function OrderSheet({ order, close }: { order: Order; close: () =
         </div>
       )}
 
-      <PickupTicket order={order} torn={celebrating} />
+      <PickupTicket order={order} torn={celebrating} onCodeClick={order.collected ? undefined : openCounter} />
 
-      {!order.collected && (
+      {!order.collected && !celebrating && (
         <>
-          <CollectSlider onComplete={collect} />
-          {!celebrating && (
-            <p className="collect-help">Deslize na frente do atendente para confirmar a retirada.</p>
-          )}
+          <button className="sheet-action" type="button" onClick={openCounter}>
+            <Icon name="expand" size={18} />
+            Mostrar no balcão
+          </button>
+          <p className="collect-help">Abre o código em tela cheia para o atendente ler e confirmar.</p>
         </>
       )}
 
@@ -73,6 +105,22 @@ export default function OrderSheet({ order, close }: { order: Order; close: () =
       {order.collected && !celebrating && (
         <p className="collect-help">Obrigado por salvar essa refeição do lixo.</p>
       )}
+
+      <Sheet
+        open={counterOpen}
+        onClose={() => closeCounter()}
+        label="Modo balcão"
+        variant="fullscreen"
+        vt={canTransition()}
+      >
+        {(closeView) => (
+          <CounterView
+            order={order}
+            close={closeView}
+            onCollect={() => window.setTimeout(() => closeCounter(collect), 350)}
+          />
+        )}
+      </Sheet>
     </div>
   );
 }

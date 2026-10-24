@@ -13,7 +13,10 @@ export type Food = {
   rating: string;
   original: number;
   price: number;
+  /** Janela de retirada já formatada, ex.: "12:30–14:00". */
   pickup: string;
+  pickupStart: number;
+  pickupEnd: number;
   spot: string;
   walk: string;
   category: string;
@@ -23,7 +26,12 @@ export type Food = {
 const photo = (id: string, width = 900) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`;
 
-export const foods: Food[] = [
+type FoodSeed = Omit<Food, "pickup" | "pickupStart" | "pickupEnd"> & {
+  /** Abertura e fechamento da retirada, em minutos a partir de agora. */
+  window: [number, number];
+};
+
+const seeds: FoodSeed[] = [
   {
     id: 1,
     title: "Prato executivo",
@@ -33,7 +41,7 @@ export const foods: Food[] = [
     rating: "4,9",
     original: 32,
     price: 16.9,
-    pickup: "12:30–14:00",
+    window: [-25, 65],
     spot: "Pátio 1",
     walk: "2 min",
     category: "Pratos",
@@ -48,7 +56,7 @@ export const foods: Food[] = [
     rating: "4,8",
     original: 28,
     price: 14,
-    pickup: "12:00–15:00",
+    window: [-70, 25],
     spot: "Pátio 2",
     walk: "4 min",
     category: "Pratos",
@@ -63,7 +71,7 @@ export const foods: Food[] = [
     rating: "4,7",
     original: 18,
     price: 8.9,
-    pickup: "16:30–18:00",
+    window: [-10, 95],
     spot: "Pátio 1",
     walk: "1 min",
     category: "Lanches",
@@ -78,7 +86,7 @@ export const foods: Food[] = [
     rating: "4,6",
     original: 20,
     price: 9.9,
-    pickup: "18:00–19:30",
+    window: [20, 110],
     spot: "Pátio 2",
     walk: "3 min",
     category: "Salgados",
@@ -93,7 +101,7 @@ export const foods: Food[] = [
     rating: "4,9",
     original: 26,
     price: 12.9,
-    pickup: "17:00–18:30",
+    window: [-40, 50],
     spot: "Pátio 3",
     walk: "5 min",
     category: "Lanches",
@@ -108,13 +116,53 @@ export const foods: Food[] = [
     rating: "4,5",
     original: 24,
     price: 10.9,
-    pickup: "19:00–20:00",
+    window: [45, 120],
     spot: "Pátio 3",
     walk: "6 min",
     category: "Doces",
     stock: 1,
   },
 ];
+
+// Horários relativos ao momento em que o app abre: há sempre ofertas abertas, uma perto de
+// fechar e outras abrindo em breve, para a contagem regressiva fazer sentido a qualquer hora.
+function atMinutesFromNow(minutes: number) {
+  const date = new Date(Date.now() + minutes * 60_000);
+  date.setMinutes(Math.round(date.getMinutes() / 5) * 5, 0, 0);
+  return date.getTime();
+}
+
+const clock = (time: number) =>
+  new Date(time).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+export const foods: Food[] = seeds.map(({ window: [opens, closes], ...food }) => {
+  const pickupStart = atMinutesFromNow(opens);
+  const pickupEnd = atMinutesFromNow(closes);
+  return { ...food, pickupStart, pickupEnd, pickup: `${clock(pickupStart)}–${clock(pickupEnd)}` };
+});
+
+export type PickupStatus = { phase: "soon" | "open" | "closed"; label: string; remaining: number };
+
+function duration(ms: number) {
+  const minutes = Math.max(1, Math.ceil(ms / 60_000));
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours}h${String(rest).padStart(2, "0")}` : `${hours}h`;
+}
+
+// Situação da retirada agora: abre em…, fecha em… ou encerrada (remaining vai de 1 a 0).
+export function pickupStatus(food: Food, now: number): PickupStatus {
+  if (now < food.pickupStart) {
+    return { phase: "soon", label: `Abre em ${duration(food.pickupStart - now)}`, remaining: 1 };
+  }
+  if (now < food.pickupEnd) {
+    const remaining = (food.pickupEnd - now) / (food.pickupEnd - food.pickupStart);
+    const left = food.pickupEnd - now;
+    return { phase: "open", label: left < 60_000 ? "Fecha em instantes" : `Fecha em ${duration(left)}`, remaining };
+  }
+  return { phase: "closed", label: "Retirada encerrada", remaining: 0 };
+}
 
 export const foodById = (id: number) => foods.find((food) => food.id === id) ?? foods[0];
 

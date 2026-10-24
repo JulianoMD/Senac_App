@@ -10,6 +10,7 @@ export type IconName =
   | "compass"
   | "copy"
   | "download"
+  | "expand"
   | "flame"
   | "gift"
   | "grid"
@@ -68,6 +69,7 @@ const paths: Record<IconName, React.ReactNode> = {
     </>
   ),
   download: <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />,
+  expand: <path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5" />,
   flame: <path d="M12 21c4 0 7-2.7 7-6.6 0-3.9-3-6.2-4.4-9.9-.3 2.7-1.6 4.1-3 4.9.2-2.8-1.2-5.3-3.6-6.9.4 3.6-3 6.1-3 10.8C5 18.3 8 21 12 21Z" />,
   gift: (
     <>

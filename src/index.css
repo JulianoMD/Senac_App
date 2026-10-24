@@ -49,6 +49,7 @@
   --shadow-card: 0 1px 2px rgb(18 26 45 / 5%), 0 12px 28px -14px rgb(18 26 45 / 18%);
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --spring: cubic-bezier(0.3, 1.45, 0.5, 1);
+  --sk-shine: linear-gradient(100deg, #eee7dc 0%, #eee7dc 40%, #f9f5ef 50%, #eee7dc 60%, #eee7dc 100%);
 
   font-family: var(--font-sans);
   font-size: 15px;
@@ -2936,10 +2937,12 @@ svg {
   scale: 1;
 }
 
+/* Fotos ainda carregando usam o mesmo brilho das silhuetas dos cards */
 :where(.food-media, .item-hero, .category-media, .ticket-photo, .onboarding-photo):has(> .photo:not(.is-loaded)) {
-  background-image: linear-gradient(100deg, rgb(255 255 255 / 0%) 20%, rgb(255 255 255 / 60%) 50%, rgb(255 255 255 / 0%) 80%);
-  background-size: 220% 100%;
-  animation: shimmer 1.3s linear infinite;
+  background: var(--sk-shine);
+  background-attachment: fixed;
+  background-size: 200vw 100%;
+  animation: sk-shimmer 1.6s linear infinite;
 }
 
 /* Revelar ao rolar (só onde o navegador suporta animações guiadas pela rolagem) */
@@ -4057,4 +4060,328 @@ html[data-motion="reduced"] .medal.is-flipped .medal-back {
   line-height: 1.45;
   border-bottom: 1px solid var(--line);
   animation: fade-in 240ms ease both;
+}
+
+/* Contagem regressiva: o anel do "zero" esvazia até o fim da retirada */
+
+.countdown {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.countdown svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  transform: rotate(-90deg);
+}
+
+.countdown circle {
+  fill: none;
+  stroke-width: 3;
+}
+
+.countdown-track {
+  stroke: var(--accent-soft);
+}
+
+.countdown-value {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.countdown.is-open {
+  color: var(--accent-ink);
+}
+
+.countdown.is-soon {
+  color: var(--brand);
+}
+
+.countdown.is-soon .countdown-track {
+  stroke: var(--brand-soft);
+}
+
+.countdown.is-soon .countdown-value {
+  stroke: var(--brand-mid);
+}
+
+.countdown.is-closed {
+  color: var(--muted);
+}
+
+.countdown.is-closed .countdown-track {
+  stroke: var(--line);
+}
+
+.countdown--md {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.countdown--md svg {
+  width: 18px;
+  height: 18px;
+}
+
+.countdown--lg {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.countdown--lg svg {
+  width: 22px;
+  height: 22px;
+}
+
+.food-spot {
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+}
+
+.fact-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fact-text .countdown {
+  font-size: 13px;
+}
+
+.ticket-countdown {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  text-align: left;
+  border-top: 1px solid rgb(21 84 176 / 14%);
+}
+
+/* Silhuetas dos cards enquanto as ofertas carregam (o brilho passa por todas ao mesmo tempo) */
+
+.sk {
+  background: var(--sk-shine);
+  background-attachment: fixed;
+  background-size: 200vw 100%;
+  animation: sk-shimmer 1.6s linear infinite;
+}
+
+.skeleton-card {
+  pointer-events: none;
+  box-shadow: none;
+  outline: 1px solid var(--line);
+  outline-offset: -1px;
+}
+
+.sk-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 22px 22px 0 0;
+}
+
+.sk-store {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  width: 34px;
+  height: 34px;
+  background: rgb(255 255 255 / 60%);
+  border-radius: 50%;
+}
+
+.sk-line {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+}
+
+.sk-line--title {
+  width: 150px;
+  height: 16px;
+}
+
+.sk-line--meta {
+  width: 118px;
+  margin-top: 9px;
+}
+
+.sk-line--price {
+  width: 78px;
+  height: 18px;
+}
+
+.sk-pill {
+  display: block;
+  width: 44px;
+  height: 18px;
+  margin-top: 4px;
+  border-radius: 6px;
+}
+
+/* Modo balcão: tela cheia, fundo branco e código grande */
+
+.fullscreen.is-vt[open] > * {
+  animation: none;
+  view-transition-name: counter;
+}
+
+.counter {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: calc(14px + env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom));
+  color: var(--ink);
+  background: #ffffff;
+}
+
+.counter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.counter-bar span {
+  color: var(--brand);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.counter-bar button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--ink);
+  background: var(--bg);
+  border: 0;
+  border-radius: 50%;
+  place-items: center;
+}
+
+.counter-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.counter-label {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.counter-name {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.counter-code {
+  margin: 8px 0;
+  padding: 10px 22px;
+  color: var(--brand-deep);
+  font-size: clamp(42px, 13.5vw, 84px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.05;
+  white-space: nowrap;
+  background: var(--accent-soft);
+  border: 3px dashed var(--accent);
+  border-radius: 24px;
+}
+
+.counter-barcode {
+  width: 100%;
+  max-width: 420px;
+  padding: 10px 4px;
+}
+
+.counter-barcode .barcode {
+  width: 100%;
+  color: #000000;
+}
+
+.counter-barcode .barcode-digits {
+  font-size: 8px;
+}
+
+.counter-info {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.counter-collect p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.counter .collect {
+  margin-top: 0;
+  background: var(--bg-deep);
+}
+
+.counter .collect-label {
+  background: linear-gradient(90deg, rgb(18 26 45 / 40%) 0%, var(--ink) 50%, rgb(18 26 45 / 40%) 100%) 0 0 / 200% 100%;
+  background-clip: text;
+}
+
+.counter .collect.is-done .collect-label {
+  color: #ffffff;
+  background: none;
+}
+
+button.ticket-code {
+  cursor: zoom-in;
+  transition: transform 220ms var(--spring);
+}
+
+button.ticket-code:hover {
+  transform: scale(1.04);
+}
+
+button.ticket-code:active {
+  transform: scale(0.97);
+}
+
+html[data-vt="counter"]::view-transition-new(counter) {
+  animation: fade-in 260ms ease both;
+}
+
+html[data-vt="counter"]::view-transition-old(counter) {
+  animation: fade-out 220ms ease both;
+}
+
+::view-transition-group(pickup-code) {
+  animation-duration: 560ms;
+  animation-timing-function: cubic-bezier(0.3, 1.2, 0.5, 1);
+}
+
+::view-transition-old(pickup-code),
+::view-transition-new(pickup-code) {
+  height: 100%;
+}
+
+@keyframes sk-shimmer {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: -200vw 0;
+  }
 }
