@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+.vite
+.cache
+.claude
+.git
+*.log
+.env*
+Dockerfile
+docker-compose.yml

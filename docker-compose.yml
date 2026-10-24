@@ -1,0 +1,27 @@
+name: fila-zero
+
+services:
+  # Versão de produção: build otimizado servido pelo nginx.
+  # docker compose up --build  ->  http://localhost:8080
+  web:
+    build:
+      context: .
+      target: prod
+    image: fila-zero-web
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  # Versão de desenvolvimento com hot reload (edite src/ e veja na hora).
+  # docker compose --profile dev up --build dev  ->  http://localhost:8443
+  dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      target: dev
+    image: fila-zero-dev
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./src:/app/src
+      - ./index.html:/app/index.html

@@ -1,0 +1,12 @@
+{
+  "title": "Fila Zero · Senac",
+  "language": "pt-BR",
+  "description": "Peça e pague pelo app, retire sem fila com seu código. Refeições do campus Senac perto do vencimento com preço reduzido.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
