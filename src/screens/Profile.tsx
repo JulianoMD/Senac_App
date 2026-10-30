@@ -10,7 +10,6 @@ import Sheet from "../components/Sheet";
 import { foodById, orderTime, tasks, user, walletCoupons, welcomeCoupon, type Coupon } from "../data";
 import avatar from "../assets/avatar-marina.png";
 import { canNotify } from "../alerts";
-import { isIOS, useInstall } from "../install";
 import { useApp, type ThemePreference } from "../store";
 
 const LEVEL_START = 10;
@@ -60,8 +59,6 @@ const themeHint: Record<ThemePreference, string> = {
 export default function Profile() {
   const app = useApp();
   const [openCoupon, setOpenCoupon] = useState<Coupon | null>(null);
-  const install = useInstall();
-  const [installHelp, setInstallHelp] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [permission, setPermission] = useState(() => (canNotify() ? Notification.permission : "denied"));
 
@@ -309,47 +306,6 @@ export default function Profile() {
               ))}
             </fieldset>
           </div>
-          <button className="menu-row" type="button" onClick={() => app.setVendorOpen(true)}>
-            <span className="menu-icon">
-              <Icon name="bag" size={18} />
-            </span>
-            <span>
-              Modo cantina
-              <small>Para quem vende: publicar sobras e entregar no balcão</small>
-            </span>
-            <Icon name="arrow" size={18} />
-          </button>
-          {!install.installed && (
-            <button
-              className="menu-row"
-              type="button"
-              aria-expanded={install.canPrompt ? undefined : installHelp}
-              onClick={async () => {
-                if (!install.canPrompt) {
-                  setInstallHelp((open) => !open);
-                  return;
-                }
-                const outcome = await install.install();
-                if (outcome === "accepted") app.toast("Fila Zero instalado na tela inicial");
-              }}
-            >
-              <span className="menu-icon">
-                <Icon name="download" size={18} />
-              </span>
-              <span>
-                Instalar o app no celular
-                <small>Abre da tela inicial, até sem internet</small>
-              </span>
-              <Icon name="arrow" size={18} />
-            </button>
-          )}
-          {installHelp && !install.installed && (
-            <p className="install-help">
-              {isIOS
-                ? "No Safari, toque em Compartilhar e depois em “Adicionar à Tela de Início”."
-                : "No menu do navegador, escolha “Instalar app” ou “Adicionar à tela inicial”."}
-            </p>
-          )}
           <button className="menu-row" type="button" onClick={app.showOnboarding}>
             <span className="menu-icon">
               <Icon name="compass" size={18} />
@@ -405,8 +361,7 @@ export default function Profile() {
           )}
         </div>
         <p className="demo-note">
-          Projeto de demonstração: não há servidor, tudo fica salvo só neste aparelho. Para mostrar os dois lados, abra
-          o Modo cantina em outra janela: o que muda numa aparece na outra.
+          Projeto de demonstração: não há servidor, tudo fica salvo só neste aparelho.
         </p>
       </section>
 

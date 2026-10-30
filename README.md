@@ -8,7 +8,7 @@ App para cortar as filas nas cantinas do campus. A pessoa escolhe uma refeição
 
 O Fila Zero é um PWA: dá para instalar como um app, com ícone na tela inicial, e ele abre mesmo sem internet.
 
-- **Android (Chrome):** abra o link, toque em **Perfil → Instalar o app no celular** ou no menu ⋮ → *Instalar app*.
+- **Android (Chrome):** abra o link e, no menu ⋮, toque em *Instalar app*.
 - **iPhone (Safari):** abra o link, toque em **Compartilhar** e depois em **Adicionar à Tela de Início**.
 
 A cada envio para o branch `main`, o GitHub Actions publica a versão nova automaticamente.
@@ -20,7 +20,7 @@ A cada envio para o branch `main`, o GitHub Actions publica a versão nova autom
 - **Reservar e pagar:** Pix ou cartão (simulados), em três etapas, com mapa do campus até o pátio de retirada.
 - **Código de retirada:** ticket com nome, horário, código e código de barras; no balcão, "deslize para retirar".
 - **Refeição solidária:** pagar uma refeição a mais para um colega, ou usar um código da assistência estudantil para retirar de graça.
-- **Modo cantina:** o lado de quem vende — retiradas na ordem dos horários, leitor do código, publicar sobras, impacto do dia e doação ao banco de alimentos.
+- **Modo cantina** (fora do app do aluno, pelo link `?modo=cantina`): o lado de quem vende — retiradas na ordem dos horários, leitor do código, publicar sobras, impacto do dia e doação ao banco de alimentos.
 - **Alertas:** horário chegando, retirada perto de fechar, favorita que abriu e oferta nova de uma cantina salva.
 - **Desafio do campus:** meta coletiva da semana, ranking por curso e CO₂ evitado.
 - **Pedidos, Favoritos e Perfil** com impacto, conquistas, cupons, modo escuro e tour de boas-vindas.

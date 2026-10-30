@@ -4939,16 +4939,6 @@ html[data-motion="reduced"] .medal.is-flipped .medal-back {
   }
 }
 
-.install-help {
-  margin: 0;
-  padding: 0 16px 14px 62px;
-  color: var(--text-2);
-  font-size: 13.5px;
-  line-height: 1.45;
-  border-bottom: 1px solid var(--line);
-  animation: fade-in 240ms ease both;
-}
-
 /* Contagem regressiva: o anel do "zero" esvazia até o fim da retirada */
 
 .countdown {
