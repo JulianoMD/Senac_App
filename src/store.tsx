@@ -107,7 +107,6 @@ function useAppState() {
   const [vendorOpen, setVendorOpen] = useState(() => new URLSearchParams(window.location.search).get("modo") === "cantina");
   const [hint, setHintState] = useState<Hint>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const systemReduced = useMediaQuery("(prefers-reduced-motion: reduce)");
   const systemDark = useMediaQuery("(prefers-color-scheme: dark)");
   const toastId = useRef(0);
   const hintTimer = useRef<number>(undefined);
@@ -142,11 +141,11 @@ function useAppState() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // Segue o "reduzir movimento" do celular: quem pediu menos movimento vê só esmaecer.
-  const reducedMotion = systemReduced;
+  // Decisão do projeto: sempre as animações completas, mesmo com "reduzir movimento" ligado no
+  // aparelho. (As regras de movimento reduzido continuam no CSS, caso a opção volte um dia.)
   useLayoutEffect(() => {
-    document.documentElement.dataset.motion = reducedMotion ? "reduced" : "full";
-  }, [reducedMotion]);
+    document.documentElement.dataset.motion = "full";
+  }, []);
 
   // Tema: segue o claro/escuro do celular, a menos que a pessoa escolha outro no Perfil.
   // (O index.html aplica o mesmo tema antes da primeira pintura, sem piscar branco.)
@@ -409,7 +408,6 @@ function useAppState() {
     cancelOrder,
     hideChecklist: () => update(() => ({ checklistHidden: true })),
     setNotify: (notify: boolean) => update(() => ({ notify })),
-    reducedMotion,
     theme: saved.theme,
     // A troca de tema esmaece a tela inteira de uma vez (sem cada cor mudar no seu tempo).
     setTheme: (theme: ThemePreference) => withTransition("theme", () => update(() => ({ theme }))),
