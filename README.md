@@ -65,4 +65,4 @@ Abra http://localhost:8443.
 
 ## Tecnologias
 
-React 19, TypeScript, Vite e Tailwind CSS v4. Animações com View Transitions API e CSS, respeitando a opção de reduzir movimento do sistema (que pode ser trocada em Perfil → Conta).
+React 19, TypeScript, Vite e Tailwind CSS v4. Animações com View Transitions API e CSS, respeitando a opção de reduzir movimento do celular.

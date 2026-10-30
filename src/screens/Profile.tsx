@@ -285,31 +285,6 @@ export default function Profile() {
               }}
             />
           </label>
-          <label className="menu-row">
-            <span className="menu-icon">
-              <Icon name="play" size={18} />
-            </span>
-            <span>
-              Animações completas
-              <small>
-                {app.reducedMotion
-                  ? app.systemReduced && app.motion === "system"
-                    ? "Seu dispositivo pede menos movimento"
-                    : "Só esmaecer, sem deslizes"
-                  : "Deslizes, molas e confete"}
-              </small>
-            </span>
-            <input
-              className="switch"
-              type="checkbox"
-              role="switch"
-              checked={!app.reducedMotion}
-              onChange={(event) => {
-                app.setMotion(event.target.checked ? "full" : "reduced");
-                app.toast(event.target.checked ? "Animações completas ativadas" : "Movimento reduzido");
-              }}
-            />
-          </label>
           <div className="menu-row menu-row--stack">
             <span className="menu-icon">
               <Icon name="moon" size={18} />

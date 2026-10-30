@@ -9,7 +9,6 @@ export type Hint = "favorite" | "coupon" | null;
 
 type Toast = { id: number; message: string; leaving?: boolean; action?: { label: string; run: () => void } };
 
-export type MotionPreference = "system" | "full" | "reduced";
 export type ThemePreference = "system" | "light" | "dark";
 
 type Saved = {
@@ -20,7 +19,6 @@ type Saved = {
   onboarded: boolean;
   checklistHidden: boolean;
   notify: boolean;
-  motion: MotionPreference;
   theme: ThemePreference;
   /** Ofertas publicadas pelo Modo cantina neste aparelho. */
   customFoods: Food[];
@@ -77,7 +75,6 @@ const initialState: Saved = {
   onboarded: false,
   checklistHidden: false,
   notify: true,
-  motion: "system",
   theme: "system",
   customFoods: [],
   donated: 0,
@@ -145,8 +142,8 @@ function useAppState() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // Segue o "reduzir movimento" do sistema, a menos que a pessoa escolha outra coisa no Perfil.
-  const reducedMotion = saved.motion === "reduced" || (saved.motion === "system" && systemReduced);
+  // Segue o "reduzir movimento" do celular: quem pediu menos movimento vê só esmaecer.
+  const reducedMotion = systemReduced;
   useLayoutEffect(() => {
     document.documentElement.dataset.motion = reducedMotion ? "reduced" : "full";
   }, [reducedMotion]);
@@ -413,8 +410,6 @@ function useAppState() {
     hideChecklist: () => update(() => ({ checklistHidden: true })),
     setNotify: (notify: boolean) => update(() => ({ notify })),
     reducedMotion,
-    systemReduced,
-    setMotion: (motion: MotionPreference) => update(() => ({ motion })),
     theme: saved.theme,
     // A troca de tema esmaece a tela inteira de uma vez (sem cada cor mudar no seu tempo).
     setTheme: (theme: ThemePreference) => withTransition("theme", () => update(() => ({ theme }))),
